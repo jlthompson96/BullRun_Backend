@@ -1,2 +1,2 @@
-# BullRun_Backend
+# BullRun Backend
 Spring Backend for BullRun
