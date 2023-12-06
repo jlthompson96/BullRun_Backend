@@ -10,26 +10,29 @@ import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @RestController
-@RequestMapping("/marketMovers")
+@RequestMapping("/stockData")
 public class TwelveDataController {
 
     @Value("${twelveDataAPIKey}")
     private String apiKey;
 
+    private String stockTicker = "TSLA";
     //Market Movers
-    private final String apiUrl = "https://api.twelvedata.com/market_movers/price?apikey={apiKey}";
+    private final String marketMoversList = "https://api.twelvedata.com/market_movers/price?apikey={apiKey}";
 
     //Stock Price
-    private final String apiUrls = "https://api.twelvedata.com/price?symbol=TSLA&&apikey={apiKey}";
+    private final String currentStockPrice = "https://api.twelvedata.com/price?symbol="+ stockTicker +"&&apikey={apiKey}";
 
 
     @Autowired
     private RestTemplate restTemplate;
 
     @RequestMapping("/getMovers")
-    public ResponseEntity<String> retrieveDataFromApi() {
+    public ResponseEntity<String> getMarketMoversList() {
+        log.info("----- Entering getMarketMoversList method ----");
+
         // Set the API key in the URL
-        String url = apiUrls.replace("{apiKey}", apiKey);
+        String url = marketMoversList.replace("{apiKey}", apiKey);
 
         // Make the GET request and handle the response using ResponseEntity
         ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
@@ -38,6 +41,21 @@ public class TwelveDataController {
         // For example, HttpStatus, headers, etc.
         // HttpStatus statusCode = responseEntity.getStatusCode();
         // HttpHeaders headers = responseEntity.getHeaders();
+
+        return responseEntity;
+    }
+
+    @RequestMapping("/getStockPrice")
+    public ResponseEntity<String> getCurrentStockPrice() {
+    log.info("----- Entering getCurrentStockPrice method ----");
+
+        // Set the API key in the URL
+        String url = currentStockPrice.replace("{apiKey}", apiKey);
+        log.info("url: {}", url);
+
+        // Make the GET request and handle the response using ResponseEntity
+        ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
+        log.info("responseEntity: {}", responseEntity);
 
         return responseEntity;
     }
