@@ -1,4 +1,4 @@
-package com.thompson.bullrun;
+package com.thompson.bullrun.common;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
