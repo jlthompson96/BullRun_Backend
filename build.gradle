@@ -61,7 +61,4 @@ jacocoTestReport {
 		xml.required = true
 		html.required = true
 	}
-	afterEvaluate {
-		tasks.sonarqube.dependsOn jacocoTestReport
-	}
 }
