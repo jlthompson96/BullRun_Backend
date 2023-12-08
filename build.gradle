@@ -45,6 +45,7 @@ jacoco {
 }
 
 sonarqube {
+	dependsOn jacocoTestReport
 	properties {
 		property 'sonar.organization', 'jlthompson96'
 		property 'sonar.projectKey', 'jlthompson96_BullRun_Backend'
