@@ -24,7 +24,7 @@ repositories {
 }
 
 dependencies {
-//	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -44,16 +44,16 @@ jacoco {
 	toolVersion = "0.8.7"
 }
 
-sonarqube {
-	dependsOn jacocoTestReport
-	properties {
-		property 'sonar.organization', 'jlthompson96'
-		property 'sonar.projectKey', 'jlthompson96_BullRun_Backend'
-		property 'sonar.projectName', 'BullRun_Backend'
-		property 'sonar.host.url', 'https://sonarcloud.io'
-		property 'sonar.login', 'SONARCLOUD_KEY'
-	}
-}
+//sonarqube {
+//	dependsOn jacocoTestReport
+//	properties {
+//		property 'sonar.organization', 'jlthompson96'
+//		property 'sonar.projectKey', 'jlthompson96_BullRun_Backend'
+//		property 'sonar.projectName', 'BullRun_Backend'
+//		property 'sonar.host.url', 'https://sonarcloud.io'
+//		property 'sonar.login', 'SONARCLOUD_KEY'
+//	}
+//}
 
 jacocoTestReport {
 	dependsOn test
