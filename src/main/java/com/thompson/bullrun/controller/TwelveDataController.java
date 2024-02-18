@@ -27,16 +27,16 @@ public class TwelveDataController {
     private RestTemplate restTemplate;
 
     @RequestMapping("/getStockPrice")
-    public ResponseEntity<String> retrieveDataFromApi(Map<String, String> params) {
-            log.info("----- Entering getStockPrice method ----");
+    public ResponseEntity<String> retrieveDataFromApi(String symbol) {
+        log.info("----- Entering getStockPrice method ----");
+        log.info("Getting stock price for symbol: {}", symbol);
 
-            // Set the API key in the URL
-            String url = stockPriceURL.replace("{apiKey}", apiKey);
-            log.info("URL: {}", url);
+        // Set the API key in the URL
+        String url = stockPriceURL.replace("{apiKey}", apiKey);
+        url = url.replace("{symbol}", symbol);
+        log.info("URL: {}", url);
 
-            // Make the GET request and handle the response using ResponseEntity
-            ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
-
-            return responseEntity;
+        // Make the GET request and handle the response using ResponseEntity
+        return restTemplate.getForEntity(url, String.class);
     }
 }
