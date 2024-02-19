@@ -51,14 +51,12 @@ public class TwelveDataController {
         log.info("Getting company profile for symbol: {}", symbol);
         try {
             // Set the API key in the URL
-            String url = companyProfileURL.replace("{apiKey}", apiKey);
-            String companyLogo = companyLogoURL.replace("{apiKey}", apiKey);
-            url = url.replace("{symbol}", symbol);
-            companyLogo = companyLogo.replace("{symbol}", symbol);
+            String url = generateUrl("companyProfile", symbol);
+            String companyLogo = generateUrl("companyLogo", symbol);
             log.info("URL: {}", url);
 
             // Make the GET request and handle the response using ResponseEntity
-            ResponseEntity<String> responseEntity = restTemplate.getForEntity(url+companyLogo, String.class);
+            ResponseEntity<String> responseEntity = restTemplate.getForEntity(url + companyLogo, String.class);
             log.info("Response: {}", responseEntity.getBody());
             return responseEntity;
         } catch (Exception e) {
@@ -74,8 +72,7 @@ public class TwelveDataController {
         log.info("Getting stock price for symbol: {}", symbol);
         try {
             // Set the API key in the URL
-            String url = stockPriceURL.replace("{apiKey}", apiKey);
-            url = url.replace("{symbol}", symbol);
+            String url = generateUrl("stockPrice", symbol);
             log.info("URL: {}", url);
 
             // Make the GET request and handle the response using ResponseEntity
@@ -87,5 +84,24 @@ public class TwelveDataController {
             log.error(e.getMessage());
             return ResponseEntity.status(500).body("Error retrieving stock price");
         }
+    }
+
+    private String generateUrl(String type, String symbol) {
+        String baseURL = switch (type) {
+            case "companyProfile" -> companyProfileURL;
+            case "stockPrice" -> stockPriceURL;
+            case "companyLogo" -> companyLogoURL;
+            default -> throw new IllegalArgumentException("Invalid type parameter: " + type);
+        };
+        String url = baseURL.replace("{apiKey}", apiKey)
+                .replace("{symbol}", symbol);
+        if (type.equals("companyProfile")) {
+            url += companyLogoURL.replace("{apiKey}", apiKey)
+                    .replace("{symbol}", symbol);
+        } else if (type.equals("companyLogo")) {
+            url = baseURL.replace("{apiKey}", apiKey)
+                    .replace("{symbol}", symbol);
+        }
+        return url;
     }
 }
