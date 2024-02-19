@@ -19,7 +19,6 @@ public class TwelveDataController {
     @Value("${twelveDataAPIKey}")
     private String apiKey;
 
-    //Stock Price
     @Value("${stockPrice}")
     private String stockPriceURL;
 
@@ -36,10 +35,14 @@ public class TwelveDataController {
     @Autowired
     public TwelveDataController(RestTemplate restTemplate,
                                 @Value("${twelveDataAPIKey}") String apiKey,
-                                @Value("${stockPrice}") String stockPriceURL) {
+                                @Value("${stockPrice}") String stockPriceURL,
+                                @Value("${companyProfile}") String companyProfileURL,
+                                @Value("${companyLogo}") String companyLogoURL) {
         this.restTemplate = restTemplate;
         this.apiKey = apiKey;
         this.stockPriceURL = stockPriceURL;
+        this.companyProfileURL = companyProfileURL;
+        this.companyLogoURL = companyLogoURL;
     }
 
     @RequestMapping("/getCompanyProfile")
@@ -66,7 +69,7 @@ public class TwelveDataController {
     }
 
     @RequestMapping("/getStockPrice")
-    public ResponseEntity<String> retrieveDataFromApi(String symbol) {
+    public ResponseEntity<String> getStockPrice(String symbol) {
         log.info("----- Entering getStockPrice method ----");
         log.info("Getting stock price for symbol: {}", symbol);
         try {

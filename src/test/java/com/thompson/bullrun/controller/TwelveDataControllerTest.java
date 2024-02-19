@@ -20,7 +20,7 @@ public class TwelveDataControllerTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        twelveDataController = new TwelveDataController(restTemplate, "testApiKey", "testStockPriceURL");
+        twelveDataController = new TwelveDataController(restTemplate, "testApiKey", "testStockPriceURL", "testCompanyProfileURL", "testCompanyLogoURL");
     }
 
     @Test
@@ -31,7 +31,7 @@ public class TwelveDataControllerTest {
         when(restTemplate.getForEntity(anyString(), any()))
                 .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
 
-        ResponseEntity<String> responseEntity = twelveDataController.retrieveDataFromApi(symbol);
+        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
@@ -46,7 +46,7 @@ public class TwelveDataControllerTest {
         when(restTemplate.getForEntity(anyString(), any()))
                 .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
-        ResponseEntity<String> responseEntity = twelveDataController.retrieveDataFromApi(symbol);
+        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
 
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
         assertNull(responseEntity.getBody());
@@ -59,7 +59,7 @@ public class TwelveDataControllerTest {
         when(restTemplate.getForEntity(anyString(), any()))
                 .thenReturn(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
 
-        ResponseEntity<String> responseEntity = twelveDataController.retrieveDataFromApi(symbol);
+        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertNull(responseEntity.getBody());
@@ -72,7 +72,7 @@ public class TwelveDataControllerTest {
         when(restTemplate.getForEntity(anyString(), any()))
                 .thenReturn(null);
 
-        ResponseEntity<String> responseEntity = twelveDataController.retrieveDataFromApi(symbol);
+        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
 
         assertNull(responseEntity);
     }
@@ -84,7 +84,7 @@ public class TwelveDataControllerTest {
         when(restTemplate.getForEntity(anyString(), any()))
                 .thenReturn(new ResponseEntity<>("", HttpStatus.OK));
 
-        ResponseEntity<String> responseEntity = twelveDataController.retrieveDataFromApi(symbol);
+        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
@@ -99,7 +99,7 @@ public class TwelveDataControllerTest {
         when(restTemplate.getForEntity(anyString(), any()))
                 .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
 
-        ResponseEntity<String> responseEntity = twelveDataController.retrieveDataFromApi(symbol);
+        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
@@ -114,7 +114,7 @@ public class TwelveDataControllerTest {
         when(restTemplate.getForEntity(anyString(), any()))
                 .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
 
-        ResponseEntity<String> responseEntity = twelveDataController.retrieveDataFromApi(symbol);
+        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
 
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
         assertNotNull(responseEntity.getBody());
