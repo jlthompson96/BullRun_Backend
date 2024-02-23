@@ -1,8 +1,10 @@
 package com.thompson.bullrun.controller;
 
+import com.thompson.bullrun.entities.CompanyInfoResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -46,23 +48,29 @@ public class TwelveDataController {
     }
 
     @RequestMapping("/getCompanyProfile")
-    public ResponseEntity<String> getCompanyProfile(String symbol) {
+    public ResponseEntity<CompanyInfoResponse> getCompanyProfile(String symbol) {
         log.info("----- Entering getCompanyProfile method ----");
         log.info("Getting company profile for symbol: {}", symbol);
         try {
             // Set the API key in the URL
-            String url = generateUrl("companyProfile", symbol);
-            String companyLogo = generateUrl("companyLogo", symbol);
-            log.info("URL: {}", url);
+            String profileUrl = generateUrl("companyProfile", symbol);
+            String logoUrl = generateUrl("companyLogo", symbol);
+            log.info("Profile URL: {}", profileUrl);
+            log.info("Logo URL: {}", logoUrl);
 
-            // Make the GET request and handle the response using ResponseEntity
-            ResponseEntity<String> responseEntity = restTemplate.getForEntity(url + companyLogo, String.class);
-            log.info("Response: {}", responseEntity.getBody());
-            return responseEntity;
+            // Make the GET requests and handle the responses using ResponseEntity
+            ResponseEntity<String> profileResponse = restTemplate.getForEntity(profileUrl, String.class);
+            ResponseEntity<String> logoResponse = restTemplate.getForEntity(logoUrl, String.class);
+            log.info("Profile Response: {}", profileResponse.getBody());
+            log.info("Logo Response: {}", logoResponse.getBody());
+
+            // Create and return a ResponseEntity containing both profile and logo responses
+            CompanyInfoResponse companyInfoResponse = new CompanyInfoResponse(profileResponse.getBody(), logoResponse.getBody());
+            return ResponseEntity.ok(companyInfoResponse);
         } catch (Exception e) {
             log.error("Error in getCompanyProfile method");
             log.error(e.getMessage());
-            return ResponseEntity.status(500).body("Error retrieving company profile");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
     }
 
@@ -96,7 +104,7 @@ public class TwelveDataController {
         String url = baseURL.replace("{apiKey}", apiKey)
                 .replace("{symbol}", symbol);
         if (type.equals("companyProfile")) {
-            url += companyLogoURL.replace("{apiKey}", apiKey)
+            url = baseURL.replace("{apiKey}", apiKey)
                     .replace("{symbol}", symbol);
         } else if (type.equals("companyLogo")) {
             url = baseURL.replace("{apiKey}", apiKey)
