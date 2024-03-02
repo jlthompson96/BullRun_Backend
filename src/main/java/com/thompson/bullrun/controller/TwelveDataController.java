@@ -26,6 +26,9 @@ public class TwelveDataController {
     @Value("${companyLogo}")
     private String companyLogoURL;
 
+    @Value("${previousClose}")
+    private String previousCloseURL;
+
 
     @Autowired
     private RestTemplate restTemplate;
@@ -105,11 +108,32 @@ public class TwelveDataController {
         }
     }
 
+    @RequestMapping("/getPreviousClose")
+    public ResponseEntity<String> getPreviousClose(String symbol) {
+        log.info("----- Entering getPreviousClose method ----");
+        log.info("Getting previous close for symbol: {}", symbol);
+        try {
+            // Set the API key in the URL
+            String url = generateUrl("previousClose", symbol);
+            log.info("URL: {}", url);
+
+            // Make the GET request and handle the response using ResponseEntity
+            ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
+            log.info("Response: {}", responseEntity.getBody());
+            return responseEntity;
+        } catch (Exception e) {
+            log.error("Error in getPreviousClose method");
+            log.error(e.getMessage());
+            return ResponseEntity.status(500).body("Error retrieving previous close");
+        }
+    }
+
     private String generateUrl(String type, String symbol) {
         String baseURL = switch (type) {
             case "companyProfile" -> companyProfileURL;
             case "stockPrice" -> stockPriceURL;
             case "companyLogo" -> companyLogoURL;
+            case "previousClose" -> previousCloseURL;
             default -> throw new IllegalArgumentException("Invalid type parameter: " + type);
         };
         String url = baseURL.replace("{apiKey}", apiKey)
@@ -118,6 +142,9 @@ public class TwelveDataController {
             url = baseURL.replace("{apiKey}", apiKey)
                     .replace("{symbol}", symbol);
         } else if (type.equals("companyLogo")) {
+            url = baseURL.replace("{apiKey}", apiKey)
+                    .replace("{symbol}", symbol);
+        } else if (type.equals("previousClose")) {
             url = baseURL.replace("{apiKey}", apiKey)
                     .replace("{symbol}", symbol);
         }
