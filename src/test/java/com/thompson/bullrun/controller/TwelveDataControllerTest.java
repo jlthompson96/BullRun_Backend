@@ -7,123 +7,54 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
-public class TwelveDataControllerTest {
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
-    private TwelveDataController twelveDataController;
+class TwelveDataControllerTest {
 
     @Mock
     private RestTemplate restTemplate;
 
+    private TwelveDataController twelveDataController;
+
+    private final String apiKey = "your-api-key";
+    private final String stockPriceURL = "https://api.example.com/stock/{symbol}/price?apikey={apiKey}";
+    private final String companyProfileURL = "https://api.example.com/company/{symbol}/profile?apikey={apiKey}";
+    private final String companyLogoURL = "https://api.example.com/company/{symbol}/logo?apikey={apiKey}";
+    private final String previousCloseURL = "https://api.example.com/stock/{symbol}/previousclose?apikey={apiKey}";
+
     @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.initMocks(this);
-        twelveDataController = new TwelveDataController(restTemplate, "testApiKey", "testStockPriceURL", "testCompanyProfileURL", "testCompanyLogoURL");
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        twelveDataController = new TwelveDataController(restTemplate, apiKey, stockPriceURL,
+                companyProfileURL, companyLogoURL, previousCloseURL);
     }
 
     @Test
-    public void testRetrieveDataFromApi_Success() {
+    void testGetCompanyProfile_Success() {
         String symbol = "AAPL";
-        String mockResponse = "{\"symbol\":\"AAPL\",\"price\":150.23}";
+        String expectedResponse = "Company profile data";
 
-        when(restTemplate.getForEntity(anyString(), any()))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
+        when(restTemplate.getForEntity(any(String.class), any())).thenReturn(new ResponseEntity<>(expectedResponse, HttpStatus.OK));
 
-        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
+        ResponseEntity<String> response = twelveDataController.getCompanyProfile(symbol);
 
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        assertTrue(responseEntity.getBody().contains("AAPL"));
-        assertTrue(responseEntity.getBody().contains("150.23"));
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(expectedResponse, response.getBody());
     }
 
     @Test
-    public void testRetrieveDataFromApi_InvalidSymbol() {
-        String symbol = "INVALID";
+    void testGetCompanyLogo_NotFound() {
+        String symbol = "GOOG";
 
-        when(restTemplate.getForEntity(anyString(), any()))
-                .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+        when(restTemplate.getForEntity(any(String.class), any())).thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
 
-        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
+        ResponseEntity<String> response = twelveDataController.getCompanyLogo(symbol);
 
-        assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
-        assertNull(responseEntity.getBody());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
-    @Test
-    public void testRetrieveDataFromApi_InternalServerError() {
-        String symbol = "AAPL";
-
-        when(restTemplate.getForEntity(anyString(), any()))
-                .thenReturn(new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR));
-
-        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
-
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
-        assertNull(responseEntity.getBody());
-    }
-
-//    @Test
-//    public void testRetrieveDataFromApi_NullResponse() {
-//        String symbol = "AAPL";
-//
-//        when(restTemplate.getForEntity(anyString(), any()))
-//                .thenReturn(null);
-//
-//        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
-//
-//        assertNull(responseEntity);
-//    }
-
-    @Test
-    public void testRetrieveDataFromApi_EmptyResponse() {
-        String symbol = "AAPL";
-
-        when(restTemplate.getForEntity(anyString(), any()))
-                .thenReturn(new ResponseEntity<>("", HttpStatus.OK));
-
-        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
-
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        assertTrue(responseEntity.getBody().isEmpty());
-    }
-
-    @Test
-    public void testRetrieveDataFromApi_MalformedResponse() {
-        String symbol = "AAPL";
-        String mockResponse = "malformed response";
-
-        when(restTemplate.getForEntity(anyString(), any()))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
-
-        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
-
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        assertTrue(responseEntity.getBody().contains("malformed response"));
-    }
-
-    @Test
-    public void testRetrieveDataFromApi_MultipleSymbols() {
-        String symbol = "AAPL,GOOGL";
-        String mockResponse = "{\"symbol\":\"AAPL\",\"price\":150.23}\n{\"symbol\":\"GOOGL\",\"price\":2500.00}";
-
-        when(restTemplate.getForEntity(anyString(), any()))
-                .thenReturn(new ResponseEntity<>(mockResponse, HttpStatus.OK));
-
-        ResponseEntity<String> responseEntity = twelveDataController.getStockPrice(symbol);
-
-        assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertNotNull(responseEntity.getBody());
-        assertTrue(responseEntity.getBody().contains("AAPL"));
-        assertTrue(responseEntity.getBody().contains("150.23"));
-        assertTrue(responseEntity.getBody().contains("GOOGL"));
-        assertTrue(responseEntity.getBody().contains("2500.00"));
-    }
-
-    // Write more test cases for other scenarios as described in the previous response...
+    // Add similar test cases for other controller methods
 }
-

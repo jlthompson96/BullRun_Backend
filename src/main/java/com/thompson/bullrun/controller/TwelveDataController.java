@@ -5,7 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -14,140 +16,68 @@ import org.springframework.web.client.RestTemplate;
 @RequestMapping("/stockData")
 public class TwelveDataController {
 
-    @Value("${twelveDataAPIKey}")
-    private String apiKey;
-
-    @Value("${stockPrice}")
-    private String stockPriceURL;
-
-    @Value("${companyProfile}")
-    private String companyProfileURL;
-
-    @Value("${companyLogo}")
-    private String companyLogoURL;
-
-    @Value("${previousClose}")
-    private String previousCloseURL;
-
-
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
+    private final String apiKey;
+    private final String stockPriceURL;
+    private final String companyProfileURL;
+    private final String companyLogoURL;
+    private final String previousCloseURL;
 
     @Autowired
     public TwelveDataController(RestTemplate restTemplate,
                                 @Value("${twelveDataAPIKey}") String apiKey,
                                 @Value("${stockPrice}") String stockPriceURL,
                                 @Value("${companyProfile}") String companyProfileURL,
-                                @Value("${companyLogo}") String companyLogoURL) {
+                                @Value("${companyLogo}") String companyLogoURL,
+                                @Value("${previousClose}") String previousCloseURL){
         this.restTemplate = restTemplate;
         this.apiKey = apiKey;
         this.stockPriceURL = stockPriceURL;
         this.companyProfileURL = companyProfileURL;
         this.companyLogoURL = companyLogoURL;
+        this.previousCloseURL = previousCloseURL;
     }
 
-    @RequestMapping("/getCompanyProfile")
-    public ResponseEntity<String> getCompanyProfile(String symbol) {
-        log.info("----- Entering getCompanyProfile method ----");
+    @GetMapping("/companyProfile")
+    public ResponseEntity<String> getCompanyProfile(@RequestParam String symbol) {
         log.info("Getting company profile for symbol: {}", symbol);
-        try {
-            // Set the API key in the URL
-            String profileUrl = generateUrl("companyProfile", symbol);
-            log.info("Profile URL: {}", profileUrl);
-
-            // Make the GET requests and handle the responses using ResponseEntity
-            ResponseEntity<String> profileResponse = restTemplate.getForEntity(profileUrl, String.class);
-            log.info("Profile Response: {}", profileResponse.getBody());
-
-            // Create and return a ResponseEntity containing both profile and logo responses
-            return profileResponse;
-        } catch (Exception e) {
-            log.error("Error in getCompanyProfile method");
-            log.error(e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        return fetchData(companyProfileURL, symbol);
     }
 
-    @RequestMapping("/getCompanyLogo")
-    public ResponseEntity<String> getCompanyLogo(String symbol) {
-        log.info("----- Entering getCompanyLogo method ----");
+    @GetMapping("/companyLogo")
+    public ResponseEntity<String> getCompanyLogo(@RequestParam String symbol) {
         log.info("Getting company logo for symbol: {}", symbol);
-        try {
-            // Set the API key in the URL
-            String url = generateUrl("companyLogo", symbol);
-            log.info("URL: {}", url);
-
-            // Make the GET request and handle the response using ResponseEntity
-            ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
-            log.info("Response: {}", responseEntity.getBody());
-            return responseEntity;
-        } catch (Exception e) {
-            log.error("Error in getCompanyLogo method");
-            log.error(e.getMessage());
-            return ResponseEntity.status(500).body("Error retrieving company logo");
-        }
+        return fetchData(companyLogoURL, symbol);
     }
 
-    @RequestMapping("/getStockPrice")
-    public ResponseEntity<String> getStockPrice(String symbol) {
-        log.info("----- Entering getStockPrice method ----");
+    @GetMapping("/stockPrice")
+    public ResponseEntity<String> getStockPrice(@RequestParam String symbol) {
         log.info("Getting stock price for symbol: {}", symbol);
-        try {
-            // Set the API key in the URL
-            String url = generateUrl("stockPrice", symbol);
-            log.info("URL: {}", url);
-
-            // Make the GET request and handle the response using ResponseEntity
-            ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
-            log.info("Response: {}", responseEntity.getBody());
-            return responseEntity;
-        } catch (Exception e) {
-            log.error("Error in getStockPrice method");
-            log.error(e.getMessage());
-            return ResponseEntity.status(500).body("Error retrieving stock price");
-        }
+        return fetchData(stockPriceURL, symbol);
     }
 
-    @RequestMapping("/getPreviousClose")
-    public ResponseEntity<String> getPreviousClose(String symbol) {
-        log.info("----- Entering getPreviousClose method ----");
+    @GetMapping("/previousClose")
+    public ResponseEntity<String> getPreviousClose(@RequestParam String symbol) {
         log.info("Getting previous close for symbol: {}", symbol);
-        try {
-            // Set the API key in the URL
-            String url = generateUrl("previousClose", symbol);
-            log.info("URL: {}", url);
-
-            // Make the GET request and handle the response using ResponseEntity
-            ResponseEntity<String> responseEntity = restTemplate.getForEntity(url, String.class);
-            log.info("Response: {}", responseEntity.getBody());
-            return responseEntity;
-        } catch (Exception e) {
-            log.error("Error in getPreviousClose method");
-            log.error(e.getMessage());
-            return ResponseEntity.status(500).body("Error retrieving previous close");
-        }
+        return fetchData(previousCloseURL, symbol);
     }
 
-    private String generateUrl(String type, String symbol) {
-        String baseURL = switch (type) {
-            case "companyProfile" -> companyProfileURL;
-            case "stockPrice" -> stockPriceURL;
-            case "companyLogo" -> companyLogoURL;
-            case "previousClose" -> previousCloseURL;
-            default -> throw new IllegalArgumentException("Invalid type parameter: " + type);
-        };
-        String url = baseURL.replace("{apiKey}", apiKey)
-                .replace("{symbol}", symbol);
-        if (type.equals("companyProfile")) {
-            url = baseURL.replace("{apiKey}", apiKey)
-                    .replace("{symbol}", symbol);
-        } else if (type.equals("companyLogo")) {
-            url = baseURL.replace("{apiKey}", apiKey)
-                    .replace("{symbol}", symbol);
-        } else if (type.equals("previousClose")) {
-            url = baseURL.replace("{apiKey}", apiKey)
-                    .replace("{symbol}", symbol);
+    private ResponseEntity<String> fetchData(String url, String symbol) {
+        try {
+            String apiUrl = url.replace("{apiKey}", apiKey).replace("{symbol}", symbol);
+            ResponseEntity<String> responseEntity = restTemplate.getForEntity(apiUrl, String.class);
+            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+                log.info("Response: {}", responseEntity.getBody());
+                return responseEntity;
+            } else {
+                log.error("Error in fetchData method");
+                log.error(responseEntity.getStatusCode().toString());
+                return ResponseEntity.status(responseEntity.getStatusCode()).body("Error retrieving data");
+            }
+        } catch (Exception e) {
+            log.error("Error in fetchData method");
+            log.error(e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving data");
         }
-        return url;
     }
 }
