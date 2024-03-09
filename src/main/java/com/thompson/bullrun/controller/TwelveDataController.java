@@ -16,6 +16,8 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -108,7 +110,10 @@ public class TwelveDataController {
 
     @GetMapping("/health")
     public ResponseEntity<String> healthCheck() {
-        return ResponseEntity.ok("Service is up and running");
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String formattedDateTime = currentDateTime.format(formatter);
+        return ResponseEntity.ok("Service is up and running as of " + formattedDateTime);
     }
 
 
