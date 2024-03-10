@@ -6,13 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -23,10 +19,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-import static java.lang.Math.round;
-
 @Slf4j
 @RestController
+@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/stockData")
 public class TwelveDataController {
 
@@ -85,7 +80,7 @@ public class TwelveDataController {
 
         JSONObject json = new JSONObject();
         json.put("DJI", new JSONObject(Objects.requireNonNull(djiPrice.getBody())).getString("price"));
-        json.put("S&P500", new JSONObject(Objects.requireNonNull(spxPrice.getBody())).getString("price"));
+        json.put("SP500", new JSONObject(Objects.requireNonNull(spxPrice.getBody())).getString("price"));
         json.put("NASDAQ", new JSONObject(Objects.requireNonNull(ndxPrice.getBody())).getString("price"));
 
         // Convert JSON object to Map
