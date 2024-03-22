@@ -20,7 +20,7 @@ public class AppConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("") //Leave Blank to avoid multiple values in Access-Control-Allow-Origin
-                        .allowedOrigins("http://localhost:5173, https://coral-app-tozmc.ondigitalocean.app") // replace with your client's URL
+                        .allowedOrigins("http://localhost:5173, https://bull-run-frontend.vercel.app/") // replace with your client's URL
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
