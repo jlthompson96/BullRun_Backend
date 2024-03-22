@@ -21,7 +21,6 @@ import java.util.Objects;
 
 @Slf4j
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/stockData")
 public class TwelveDataController {
 
