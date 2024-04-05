@@ -94,7 +94,7 @@ public class TwelveDataController {
         return responseMap;
     }
 
-    private String formatPrice(double price) {
+    String formatPrice(double price) {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
         DecimalFormat decimalFormat = new DecimalFormat("#,##0.00", symbols);
         decimalFormat.setRoundingMode(RoundingMode.HALF_UP);

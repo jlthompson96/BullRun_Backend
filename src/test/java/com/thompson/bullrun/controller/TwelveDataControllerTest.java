@@ -1,60 +1,98 @@
 package com.thompson.bullrun.controller;
 
-import org.junit.jupiter.api.BeforeEach;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
-
+import java.util.HashMap;
+import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+@ExtendWith(MockitoExtension.class)
 class TwelveDataControllerTest {
 
     @Mock
     private RestTemplate restTemplate;
 
-    private TwelveDataController twelveDataController;
+    private final String testSymbol = "TEST";
 
-    private final String apiKey = "your-api-key";
-    private final String stockPriceURL = "https://api.example.com/stock/{symbol}/price?apikey={apiKey}";
-    private final String companyProfileURL = "https://api.example.com/company/{symbol}/profile?apikey={apiKey}";
-    private final String companyLogoURL = "https://api.example.com/company/{symbol}/logo?apikey={apiKey}";
-    private final String previousCloseURL = "https://api.example.com/stock/{symbol}/previousclose?apikey={apiKey}";
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-        twelveDataController = new TwelveDataController(restTemplate, apiKey, stockPriceURL,
-                companyProfileURL, companyLogoURL, previousCloseURL);
+    @Test
+    void testGetCompanyProfile() {
+        TwelveDataController controller = new TwelveDataController(restTemplate, "", "", "companyProfileURL", "", "");
+        String expectedResponseBody = "Company profile for TEST";
+        when(restTemplate.getForEntity(any(String.class), eq(String.class))).thenReturn(new ResponseEntity<>(expectedResponseBody, HttpStatus.OK));
+        ResponseEntity<String> response = controller.getCompanyProfile(testSymbol);
+        assertEquals(expectedResponseBody, response.getBody());
     }
 
     @Test
-    void testGetCompanyProfile_Success() {
-        String symbol = "AAPL";
-        String expectedResponse = "Company profile data";
+    void testGetCompanyLogo() {
+        TwelveDataController controller = new TwelveDataController(restTemplate, "", "", "", "companyLogoURL", "");
+        String expectedResponseBody = "Company logo for TEST";
+        when(restTemplate.getForEntity(any(String.class), eq(String.class))).thenReturn(new ResponseEntity<>(expectedResponseBody, HttpStatus.OK));
+        ResponseEntity<String> response = controller.getCompanyLogo(testSymbol);
+        assertEquals(expectedResponseBody, response.getBody());
+    }
 
-        when(restTemplate.getForEntity(any(String.class), any())).thenReturn(new ResponseEntity<>(expectedResponse, HttpStatus.OK));
+    @Test
+    void testGetStockPrice() {
+        TwelveDataController controller = new TwelveDataController(restTemplate, "", "stockPriceURL", "", "", "");
+        String expectedResponseBody = "Stock price for TEST";
+        when(restTemplate.getForEntity(any(String.class), eq(String.class))).thenReturn(new ResponseEntity<>(expectedResponseBody, HttpStatus.OK));
+        ResponseEntity<String> response = controller.getStockPrice(testSymbol);
+        assertEquals(expectedResponseBody, response.getBody());
+    }
 
-        ResponseEntity<String> response = twelveDataController.getCompanyProfile(symbol);
+    @Test
+    void testGetPreviousClose() {
+        TwelveDataController controller = new TwelveDataController(restTemplate, "", "", "", "", "previousCloseURL");
+        String expectedResponseBody = "Previous close for TEST";
+        when(restTemplate.getForEntity(any(String.class), eq(String.class))).thenReturn(new ResponseEntity<>(expectedResponseBody, HttpStatus.OK));
+        ResponseEntity<String> response = controller.getPreviousClose(testSymbol);
+        assertEquals(expectedResponseBody, response.getBody());
+    }
 
+    @Test
+    void testGetIndexPrices() {
+        TwelveDataController controller = new TwelveDataController(restTemplate, "", "stockPriceURL", "", "", "");
+        Map<String, String> expectedResponseMap = new HashMap<>();
+        expectedResponseMap.put("DJI", "1,000.00");
+        expectedResponseMap.put("SP500", "2,000.00");
+        expectedResponseMap.put("NASDAQ", "3,000.00");
+
+        JSONObject djiJsonObject = new JSONObject().put("price", "1000.00");
+        JSONObject spxJsonObject = new JSONObject().put("price", "2000.00");
+        JSONObject ndxJsonObject = new JSONObject().put("price", "3000.00");
+
+        when(restTemplate.getForEntity(any(String.class), eq(String.class)))
+                .thenReturn(new ResponseEntity<>(djiJsonObject.toString(), HttpStatus.OK))
+                .thenReturn(new ResponseEntity<>(spxJsonObject.toString(), HttpStatus.OK))
+                .thenReturn(new ResponseEntity<>(ndxJsonObject.toString(), HttpStatus.OK));
+
+        Map<String, String> response = controller.getIndexPrices();
+        assertEquals(expectedResponseMap, response);
+    }
+
+    @Test
+    void testFormatPrice() {
+        TwelveDataController controller = new TwelveDataController(restTemplate, "", "", "", "", "");
+        double price = 1234.5678;
+        String formattedPrice = controller.formatPrice(price);
+        assertEquals("1,234.57", formattedPrice);
+    }
+
+    @Test
+    void testHealthCheck() {
+        TwelveDataController controller = new TwelveDataController(restTemplate, "", "", "", "", "");
+        ResponseEntity<String> response = controller.healthCheck();
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(expectedResponse, response.getBody());
     }
-
-    @Test
-    void testGetCompanyLogo_NotFound() {
-        String symbol = "GOOG";
-
-        when(restTemplate.getForEntity(any(String.class), any())).thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
-
-        ResponseEntity<String> response = twelveDataController.getCompanyLogo(symbol);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    // Add similar test cases for other controller methods
 }
+
