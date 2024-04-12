@@ -1,3 +1,4 @@
+
 package com.thompson.bullrun.controller;
 
 import lombok.extern.slf4j.Slf4j;
@@ -9,18 +10,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Slf4j
 @RestController
+@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/stockData")
 public class StockDataController {
 
@@ -52,7 +53,7 @@ public class StockDataController {
     @GetMapping("/companyProfile")
     public ResponseEntity<String> getCompanyProfile(@RequestParam String symbol) {
         log.info("Getting company profile for symbol: {}", symbol);
-        return fetchData(companyProfileURL, symbol, polygonAPIKey);
+        return fetchData(companyProfileURL, symbol, twelveDataAPIKey);
     }
 
     @GetMapping("/companyLogo")
@@ -92,22 +93,15 @@ public class StockDataController {
     @GetMapping("/indexPrices")
     public Map<String, String> getIndexPrices() {
         log.info("Getting index prices");
-        ResponseEntity<String> djiPrice = fetchData(stockPriceURL, "DJI", twelveDataAPIKey);
-        ResponseEntity<String> spxPrice = fetchData(stockPriceURL, "SPX", twelveDataAPIKey);
-        ResponseEntity<String> ndxPrice = fetchData(stockPriceURL, "IXIC", twelveDataAPIKey);
-
-        JSONObject json = new JSONObject();
-        json.put("DJI", new JSONObject(Objects.requireNonNull(djiPrice.getBody())).getString("price"));
-        json.put("SP500", new JSONObject(Objects.requireNonNull(spxPrice.getBody())).getString("price"));
-        json.put("NASDAQ", new JSONObject(Objects.requireNonNull(ndxPrice.getBody())).getString("price"));
-
-        // Convert JSON object to Map
+        List<String> indexSymbols = Arrays.asList("DJI", "SPX", "IXIC");
         Map<String, String> responseMap = new HashMap<>();
-        for (String key : json.keySet()) {
-            String priceStr = json.getString(key);
+
+        for (String symbol : indexSymbols) {
+            ResponseEntity<String> responseEntity = fetchData(stockPriceURL, symbol, twelveDataAPIKey);
+            String priceStr = new JSONObject(Objects.requireNonNull(responseEntity.getBody())).getString("price");
             double price = Double.parseDouble(priceStr);
             String formattedPrice = formatPrice(price);
-            responseMap.put(key, formattedPrice);
+            responseMap.put(symbol, formattedPrice);
         }
 
         return responseMap;
@@ -120,23 +114,25 @@ public class StockDataController {
         return decimalFormat.format(price);
     }
 
-
     ResponseEntity<String> fetchData(String url, String symbol, String apiKey) {
+        log.info("Fetching data for symbol: {}", symbol);
         try {
-            String apiUrl = url.replace("{apiKey}", apiKey).replace("{symbol}", symbol);
+            String apiUrl = constructApiUrl(url, symbol, apiKey);
             ResponseEntity<String> responseEntity = restTemplate.getForEntity(apiUrl, String.class);
             if (responseEntity.getStatusCode().is2xxSuccessful()) {
-                log.info("Response: {}", responseEntity.getBody());
+                log.info("Successfully fetched data for symbol: {}", symbol);
                 return responseEntity;
             } else {
-                log.error("Error in fetchData method");
-                log.error(responseEntity.getStatusCode().toString());
+                log.error("Error fetching data for symbol: {}. Status code: {}", symbol, responseEntity.getStatusCode());
                 return ResponseEntity.status(responseEntity.getStatusCode()).body("Error retrieving data");
             }
-        } catch (Exception e) {
-            log.error("Error in fetchData method");
-            log.error(e.getMessage());
+        } catch (HttpClientErrorException | ResourceAccessException e) {
+            log.error("Exception occurred while fetching data for symbol: {}", symbol, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving data");
         }
+    }
+
+    private String constructApiUrl(String endpoint, String symbol, String apiKey) {
+        return endpoint.replace("{apiKey}", apiKey).replace("{symbol}", symbol);
     }
 }
