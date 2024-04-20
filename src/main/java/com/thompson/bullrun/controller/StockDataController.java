@@ -21,7 +21,6 @@ import java.util.*;
 
 @Slf4j
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/stockData")
 public class StockDataController {
 
@@ -76,18 +75,23 @@ public class StockDataController {
 
     @GetMapping("/stockNews")
     public ResponseEntity<String> getRSSFeed(@RequestParam String symbol) {
-        log.info("Getting RSS feed for symbol: {}", symbol);
-        final String url = "https://feeds.finance.yahoo.com/rss/2.0/headline?s=" + symbol;
-        RestTemplate restTemplate = new RestTemplate();
-        String rssFeed = restTemplate.getForObject(url, String.class);
+        try {
+            log.info("Getting RSS feed for symbol: {}", symbol);
+            final String url = "https://feeds.finance.yahoo.com/rss/2.0/headline?s=" + symbol;
+            RestTemplate restTemplate = new RestTemplate();
+            String rssFeed = restTemplate.getForObject(url, String.class);
 
-        assert rssFeed != null;
-        JSONObject json = XML.toJSONObject(rssFeed);
-        JSONArray items = json.getJSONObject("rss").getJSONObject("channel").getJSONArray("item");
+            assert rssFeed != null;
+            JSONObject json = XML.toJSONObject(rssFeed);
+            JSONArray items = json.getJSONObject("rss").getJSONObject("channel").getJSONArray("item");
 
-        log.info("RSS feed for symbol: {} retrieved successfully", symbol);
-        log.info("RSS feed: {}", items);
-        return ResponseEntity.ok(items.toString());
+            log.info("RSS feed for symbol: {} retrieved successfully", symbol);
+            log.info("RSS feed: {}", items);
+            return ResponseEntity.ok().body(items.toString());
+        } catch (Exception e) {
+            log.error("Error occurred while getting RSS feed for symbol: {}", symbol, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving RSS feed");
+        }
     }
 
     @GetMapping("/indexPrices")
