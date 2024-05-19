@@ -32,6 +32,17 @@ public class UserService {
         }
     }
 
+    public UserEntity getUser(UserEntity userEntity) {
+        try {
+            log.info("---- Entering getUser() ----");
+            return userRepository.findById(userEntity.getId()).orElse(null);
+        } catch (Exception e) {
+            log.error("---- Error in getUser() ----");
+            log.error(e.getMessage());
+            return null;
+        }
+    }
+
     public UserEntity createUser(UserEntity userEntity) {
         try {
             log.info("---- Entering createUser() ----");

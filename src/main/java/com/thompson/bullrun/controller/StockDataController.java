@@ -21,6 +21,7 @@ import java.util.*;
 
 @Slf4j
 @RestController
+@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/stockData")
 public class StockDataController {
 
@@ -52,7 +53,7 @@ public class StockDataController {
     @GetMapping("/companyProfile")
     public ResponseEntity<String> getCompanyProfile(@RequestParam String symbol) {
         log.info("Getting company profile for symbol: {}", symbol);
-        return fetchData(companyProfileURL, symbol, twelveDataAPIKey);
+        return fetchData(companyProfileURL, symbol, polygonAPIKey);
     }
 
     @GetMapping("/companyLogo")

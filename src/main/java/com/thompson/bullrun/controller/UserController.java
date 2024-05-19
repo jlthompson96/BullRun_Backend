@@ -21,17 +21,30 @@ public class UserController {
     @Autowired
     UserService userService;
 
-        @RequestMapping("/getUserList")
-        public ResponseEntity<List<UserEntity>> getUserList() {
-            log.info("---- Entering userList() ----");
-            try {
-                return new ResponseEntity<>(userService.getUserList(), HttpStatus.OK);
-            } catch (Exception e) {
-                log.error("---- Error in userList() ----");
-                log.error(e.getMessage());
-                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+    @RequestMapping("/getUserList")
+    public ResponseEntity<List<UserEntity>> getUserList() {
+        log.info("---- Entering userList() ----");
+        try {
+            return new ResponseEntity<>(userService.getUserList(), HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("---- Error in userList() ----");
+            log.error(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
         }
+
+    //Pull details for a specific user
+    @PostMapping("/getUser")
+    public ResponseEntity<UserEntity> getUser(@RequestBody UserEntity userEntity) {
+        log.info("---- Entering getUser() ----");
+        try {
+            return new ResponseEntity<>(userService.getUser(userEntity), HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("---- Error in getUser() ----");
+            log.error(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     @PostMapping("/createUser")
     public ResponseEntity<UserEntity> createUser(@RequestBody UserEntity userEntity) {
