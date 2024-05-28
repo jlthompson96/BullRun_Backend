@@ -1,4 +1,3 @@
-
 package com.thompson.bullrun.controller;
 
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +20,6 @@ import java.util.*;
 
 @Slf4j
 @RestController
-@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/stockData")
 public class StockDataController {
 
@@ -40,7 +38,7 @@ public class StockDataController {
                                @Value("${stockPrice}") String stockPriceURL,
                                @Value("${companyProfile}") String companyProfileURL,
                                @Value("${previousClose}") String previousCloseURL,
-                               @Value("${dailyOpenClose}") String openClosePriceURL){
+                               @Value("${dailyOpenClose}") String openClosePriceURL) {
         this.restTemplate = restTemplate;
         this.twelveDataAPIKey = twelveDataAPIKey;
         this.polygonAPIKey = polygonAPIKey;
