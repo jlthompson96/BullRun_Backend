@@ -30,8 +30,8 @@ public class StockDataController {
     private final String polygonAPIKey;
     private final String stockPriceURL;
     private final String companyProfileURL;
-    private final String companyLogoURL;
     private final String previousCloseURL;
+    private final String openClosePriceURL;
 
     @Autowired
     public StockDataController(RestTemplate restTemplate,
@@ -39,27 +39,21 @@ public class StockDataController {
                                @Value("${polygonAPIKey}") String polygonAPIKey,
                                @Value("${stockPrice}") String stockPriceURL,
                                @Value("${companyProfile}") String companyProfileURL,
-                               @Value("${companyLogo}") String companyLogoURL,
-                               @Value("${previousClose}") String previousCloseURL) {
+                               @Value("${previousClose}") String previousCloseURL,
+                               @Value("${dailyOpenClose}") String openClosePriceURL){
         this.restTemplate = restTemplate;
         this.twelveDataAPIKey = twelveDataAPIKey;
         this.polygonAPIKey = polygonAPIKey;
         this.stockPriceURL = stockPriceURL;
         this.companyProfileURL = companyProfileURL;
-        this.companyLogoURL = companyLogoURL;
         this.previousCloseURL = previousCloseURL;
+        this.openClosePriceURL = openClosePriceURL;
     }
 
     @GetMapping("/companyProfile")
     public ResponseEntity<String> getCompanyProfile(@RequestParam String symbol) {
         log.info("Getting company profile for symbol: {}", symbol);
         return fetchData(companyProfileURL, symbol, polygonAPIKey);
-    }
-
-    @GetMapping("/companyLogo")
-    public ResponseEntity<String> getCompanyLogo(@RequestParam String symbol) {
-        log.info("Getting company logo for symbol: {}", symbol);
-        return fetchData(companyLogoURL, symbol, twelveDataAPIKey);
     }
 
     @GetMapping("/stockPrice")
@@ -74,6 +68,12 @@ public class StockDataController {
         return fetchData(previousCloseURL, symbol, twelveDataAPIKey);
     }
 
+    @GetMapping("/openClosePrice")
+    public ResponseEntity<String> getOpenClosePrice(@RequestParam String symbol) {
+        log.info("Getting open and close price for symbol: {}", symbol);
+        return fetchData(openClosePriceURL, symbol, polygonAPIKey);
+    }
+
     @GetMapping("/bulkStockData")
     public ResponseEntity<Map<String, Object>> getBulkStockData(@RequestParam List<String> symbols) {
         Map<String, Object> aggregatedData = new HashMap<>();
@@ -83,29 +83,35 @@ public class StockDataController {
             // Fetch and process company profile
             ResponseEntity<String> companyProfileResponse = getCompanyProfile(symbol);
             if (companyProfileResponse.getStatusCode().is2xxSuccessful()) {
-                symbolData.put("companyName", new JSONObject(companyProfileResponse.getBody()).getJSONObject("results").getString("name"));} else {
+                String companyName = new JSONObject(companyProfileResponse.getBody()).getJSONObject("results").getString("name");
+                int classIndex = companyName.indexOf("Class");
+                int commonIndex = companyName.indexOf("Common");
+                if (classIndex != -1) {
+                    companyName = companyName.substring(0, classIndex).trim();
+                } else if (commonIndex != -1) {
+                    companyName = companyName.substring(0, commonIndex).trim();
+                }
+                symbolData.put("companyName", companyName);
+            } else {
                 symbolData.put("companyName", "Data not available");
             }
 
             // Fetch and process stock price
-            ResponseEntity<String> stockPriceResponse = getStockPrice(symbol);
+            ResponseEntity<String> stockPriceResponse = getOpenClosePrice(symbol);
             if (stockPriceResponse.getStatusCode().is2xxSuccessful()) {
-                JSONObject stockPrice = new JSONObject(stockPriceResponse.getBody());
-                symbolData.put("stockPrice", stockPrice.getString("price"));
+                symbolData.put("openPrice", new JSONObject(stockPriceResponse.getBody()).getJSONArray("results").getJSONObject(0).getBigDecimal("o"));
+                symbolData.put("previousClose", new JSONObject(stockPriceResponse.getBody()).getJSONArray("results").getJSONObject(0).getBigDecimal("c"));
             } else {
-                symbolData.put("stockPrice", "Data not available");
-            }
-
-            // Fetch and process previous close
-            ResponseEntity<String> previousCloseResponse = getPreviousClose(symbol);
-            if (previousCloseResponse.getStatusCode().is2xxSuccessful()) {
-                JSONObject previousClose = new JSONObject(previousCloseResponse.getBody());
-                symbolData.put("previousClose", previousClose.getString("close"));
-            } else {
+                symbolData.put("openPrice", "Data not available");
                 symbolData.put("previousClose", "Data not available");
             }
 
             aggregatedData.put(symbol, symbolData);
+            log.info("Aggregated data for symbol: {}", symbol);
+            log.info("Company name: {}", symbolData.get("companyName"));
+            log.info("Open price: {}", symbolData.get("openPrice"));
+            log.info("Previous close: {}", symbolData.get("previousClose"));
+            log.info("-------------------------------------------------");
         }
         return ResponseEntity.ok(aggregatedData);
     }
