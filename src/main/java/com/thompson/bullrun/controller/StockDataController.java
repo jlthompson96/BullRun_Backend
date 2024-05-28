@@ -74,6 +74,42 @@ public class StockDataController {
         return fetchData(previousCloseURL, symbol, twelveDataAPIKey);
     }
 
+    @GetMapping("/bulkStockData")
+    public ResponseEntity<Map<String, Object>> getBulkStockData(@RequestParam List<String> symbols) {
+        Map<String, Object> aggregatedData = new HashMap<>();
+        for (String symbol : symbols) {
+            Map<String, Object> symbolData = new HashMap<>();
+
+            // Fetch and process company profile
+            ResponseEntity<String> companyProfileResponse = getCompanyProfile(symbol);
+            if (companyProfileResponse.getStatusCode().is2xxSuccessful()) {
+                symbolData.put("companyName", new JSONObject(companyProfileResponse.getBody()).getJSONObject("results").getString("name"));} else {
+                symbolData.put("companyName", "Data not available");
+            }
+
+            // Fetch and process stock price
+            ResponseEntity<String> stockPriceResponse = getStockPrice(symbol);
+            if (stockPriceResponse.getStatusCode().is2xxSuccessful()) {
+                JSONObject stockPrice = new JSONObject(stockPriceResponse.getBody());
+                symbolData.put("stockPrice", stockPrice.getString("price"));
+            } else {
+                symbolData.put("stockPrice", "Data not available");
+            }
+
+            // Fetch and process previous close
+            ResponseEntity<String> previousCloseResponse = getPreviousClose(symbol);
+            if (previousCloseResponse.getStatusCode().is2xxSuccessful()) {
+                JSONObject previousClose = new JSONObject(previousCloseResponse.getBody());
+                symbolData.put("previousClose", previousClose.getString("close"));
+            } else {
+                symbolData.put("previousClose", "Data not available");
+            }
+
+            aggregatedData.put(symbol, symbolData);
+        }
+        return ResponseEntity.ok(aggregatedData);
+    }
+
     @GetMapping("/stockNews")
     public ResponseEntity<String> getRSSFeed(@RequestParam String symbol) {
         try {
