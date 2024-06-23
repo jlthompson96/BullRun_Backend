@@ -9,17 +9,29 @@ import org.springframework.stereotype.Service;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * UserService is a service class that provides methods to interact with the UserRepository.
+ * It provides methods to get a list of users, get a specific user, and create a user.
+ */
 @Slf4j
 @Service
 public class UserService {
 
     private final UserRepository userRepository;
 
+    /**
+     * Constructor for UserService.
+     * @param userRepository UserRepository object dependency.
+     */
     @Autowired
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
+    /**
+     * This method is used to get a list of all users.
+     * @return List of UserEntity objects. Returns an empty list if an exception occurs.
+     */
     public List<UserEntity> getUserList(){
         try {
             log.info("---- Entering getUserList() ----");
@@ -32,6 +44,11 @@ public class UserService {
         }
     }
 
+    /**
+     * This method is used to get a specific user.
+     * @param userEntity UserEntity object with the id of the user to be fetched.
+     * @return UserEntity object. Returns null if an exception occurs or if the user is not found.
+     */
     public UserEntity getUser(UserEntity userEntity) {
         try {
             log.info("---- Entering getUser() ----");
@@ -43,6 +60,11 @@ public class UserService {
         }
     }
 
+    /**
+     * This method is used to create a new user.
+     * @param userEntity UserEntity object with the details of the user to be created.
+     * @return UserEntity object. Returns null if an exception occurs.
+     */
     public UserEntity createUser(UserEntity userEntity) {
         try {
             log.info("---- Entering createUser() ----");
