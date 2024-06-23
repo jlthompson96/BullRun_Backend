@@ -18,6 +18,10 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
 
+/**
+ * This is a controller class for handling stock data related requests.
+ * It uses RestTemplate to make HTTP requests to external APIs for fetching stock data.
+ */
 @Slf4j
 @RestController
 @RequestMapping("/stockData")
@@ -31,6 +35,18 @@ public class StockDataController {
     private final String previousCloseURL;
     private final String openClosePriceURL;
 
+    /**
+     * Constructor for StockDataController.
+     * It initializes the RestTemplate and API keys for external services.
+     * @param restTemplate The RestTemplate to make HTTP requests.
+     * @param twelveDataAPIKey The API key for the Twelve Data API.
+     * @param polygonAPIKey The API key for the Polygon API.
+     * @param stockPriceURL The URL for fetching stock price data.
+     * @param companyProfileURL The URL for fetching company profile data.
+     * @param previousCloseURL The URL for fetching previous close data.
+     * @param openClosePriceURL The URL for fetching open and close price data.
+     *
+     */
     @Autowired
     public StockDataController(RestTemplate restTemplate,
                                @Value("${twelveDataAPIKey}") String twelveDataAPIKey,
@@ -48,30 +64,60 @@ public class StockDataController {
         this.openClosePriceURL = openClosePriceURL;
     }
 
+    /**
+     * This method fetches the company profile for a given stock symbol.
+     *
+     * @param symbol The stock symbol to fetch the company profile for.
+     * @return ResponseEntity containing the company profile data or an error message.
+     */
     @GetMapping("/companyProfile")
     public ResponseEntity<String> getCompanyProfile(@RequestParam String symbol) {
         log.info("Getting company profile for symbol: {}", symbol);
         return fetchData(companyProfileURL, symbol, polygonAPIKey);
     }
 
+    /**
+     * This method fetches the current stock price for a given stock symbol.
+     *
+     * @param symbol The stock symbol to fetch the stock price for.
+     * @return ResponseEntity containing the stock price data or an error message.
+     */
     @GetMapping("/stockPrice")
     public ResponseEntity<String> getStockPrice(@RequestParam String symbol) {
         log.info("Getting stock price for symbol: {}", symbol);
         return fetchData(stockPriceURL, symbol, twelveDataAPIKey);
     }
 
+    /**
+     * This method fetches the previous closing price for a given stock symbol.
+     *
+     * @param symbol The stock symbol to fetch the previous closing price for.
+     * @return ResponseEntity containing the previous closing price data or an error message.
+     */
     @GetMapping("/previousClose")
     public ResponseEntity<String> getPreviousClose(@RequestParam String symbol) {
         log.info("Getting previous close for symbol: {}", symbol);
         return fetchData(previousCloseURL, symbol, twelveDataAPIKey);
     }
 
+    /**
+     * This method fetches the open and close price for a given stock symbol.
+     *
+     * @param symbol The stock symbol to fetch the open and close price for.
+     * @return ResponseEntity containing the open and close price data or an error message.
+     */
     @GetMapping("/openClosePrice")
     public ResponseEntity<String> getOpenClosePrice(@RequestParam String symbol) {
         log.info("Getting open and close price for symbol: {}", symbol);
         return fetchData(openClosePriceURL, symbol, polygonAPIKey);
     }
 
+    /**
+     * This method fetches the company profile, open and close price for a list of stock symbols.
+     *
+     * @param symbols List of stock symbols to fetch the data for.
+     * @return ResponseEntity containing the aggregated data for the list of stock symbols.
+     */
     @GetMapping("/bulkStockData")
     public ResponseEntity<Map<String, Object>> getBulkStockData(@RequestParam List<String> symbols) {
         Map<String, Object> aggregatedData = new HashMap<>();
@@ -114,6 +160,12 @@ public class StockDataController {
         return ResponseEntity.ok(aggregatedData);
     }
 
+    /**
+     * This method fetches the RSS feed for a given stock symbol.
+     *
+     * @param symbol The stock symbol to fetch the RSS feed for.
+     * @return ResponseEntity containing the RSS feed data or an error message.
+     */
     @GetMapping("/stockNews")
     public ResponseEntity<String> getRSSFeed(@RequestParam String symbol) {
         try {
@@ -135,6 +187,11 @@ public class StockDataController {
         }
     }
 
+    /**
+     * This method fetches the current prices for the major stock indices.
+     *
+     * @return Map containing the current prices for the major stock indices.
+     */
     @GetMapping("/indexPrices")
     public Map<String, String> getIndexPrices() {
         log.info("Getting index prices");
@@ -152,6 +209,12 @@ public class StockDataController {
         return responseMap;
     }
 
+    /**
+     * This method formats the price to include commas and two decimal places.
+     *
+     * @param price The price to format.
+     * @return The formatted price.
+     */
     String formatPrice(double price) {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
         DecimalFormat decimalFormat = new DecimalFormat("#,##0.00", symbols);
@@ -159,6 +222,14 @@ public class StockDataController {
         return decimalFormat.format(price);
     }
 
+    /**
+     * This method fetches data from an external API for a given stock symbol.
+     *
+     * @param url    The URL of the external API.
+     * @param symbol The stock symbol to fetch data for.
+     * @param apiKey The API key for the external service.
+     * @return ResponseEntity containing the data or an error message.
+     */
     ResponseEntity<String> fetchData(String url, String symbol, String apiKey) {
         log.info("Fetching data for symbol: {}", symbol);
         try {
@@ -177,6 +248,14 @@ public class StockDataController {
         }
     }
 
+    /**
+     * This method constructs the API URL by replacing placeholders with actual values.
+     *
+     * @param endpoint The endpoint URL with placeholders.
+     * @param symbol   The stock symbol to fetch data for.
+     * @param apiKey   The API key for the external service.
+     * @return The constructed API URL.
+     */
     private String constructApiUrl(String endpoint, String symbol, String apiKey) {
         return endpoint.replace("{apiKey}", apiKey).replace("{symbol}", symbol);
     }

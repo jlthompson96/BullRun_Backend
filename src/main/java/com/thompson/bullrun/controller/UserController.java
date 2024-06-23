@@ -13,6 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * UserController is a REST controller that handles HTTP requests related to UserEntity.
+ * It uses the UserService to perform operations on UserEntity.
+ */
 @Slf4j
 @RestController
 @RequestMapping("/users")
@@ -21,6 +25,10 @@ public class UserController {
     @Autowired
     UserService userService;
 
+    /**
+     * Handles the GET request to fetch the list of all users.
+     * @return ResponseEntity containing the list of UserEntity and HTTP status.
+     */
     @RequestMapping("/getUserList")
     public ResponseEntity<List<UserEntity>> getUserList() {
         log.info("---- Entering userList() ----");
@@ -33,7 +41,11 @@ public class UserController {
             }
         }
 
-    //Pull details for a specific user
+    /**
+     * Handles the POST request to fetch a specific user.
+     * @param userEntity UserEntity object containing the details of the user to be fetched.
+     * @return ResponseEntity containing the UserEntity and HTTP status.
+     */
     @PostMapping("/getUser")
     public ResponseEntity<UserEntity> getUser(@RequestBody UserEntity userEntity) {
         log.info("---- Entering getUser() ----");
@@ -46,6 +58,11 @@ public class UserController {
         }
     }
 
+    /**
+     * Handles the POST request to create a new user.
+     * @param userEntity UserEntity object containing the details of the user to be created.
+     * @return ResponseEntity containing the created UserEntity and HTTP status.
+     */
     @PostMapping("/createUser")
     public ResponseEntity<UserEntity> createUser(@RequestBody UserEntity userEntity) {
         log.info("---- Entering createUser() ----");
