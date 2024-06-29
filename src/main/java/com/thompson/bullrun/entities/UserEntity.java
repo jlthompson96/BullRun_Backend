@@ -9,7 +9,7 @@ import java.util.ArrayList;
 /**
  * This class represents a User entity in the MongoDB database.
  * It is annotated with @Document to indicate that it is a MongoDB document stored in the "Users" collection.
- * Lombok annotations are used to automatically generate getters, setters, and other utility methods.
+ * Lombok's annotations are used to automatically generate getters, setters, and other utility methods.
  */
 @Getter
 @Setter
