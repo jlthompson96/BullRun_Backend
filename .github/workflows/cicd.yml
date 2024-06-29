@@ -17,7 +17,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v2
         with:
           java-version: '17'
@@ -36,7 +36,7 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: gcr.io
-          username: _json_key
+          username: github-actions
           password: ${{ secrets.GCR_JSON_KEY }}
 
       - name: Build and push Docker image
