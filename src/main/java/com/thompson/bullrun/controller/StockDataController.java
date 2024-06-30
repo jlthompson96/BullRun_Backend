@@ -36,8 +36,6 @@ public class StockDataController {
     private final String stockPriceURL;
     private final String companyProfileURL;
     private final String previousCloseURL;
-    private final String openClosePriceURL;
-
     /**
      * Constructor for StockDataController.
      * It initializes the RestTemplate and API keys for external services.
@@ -47,7 +45,6 @@ public class StockDataController {
      * @param stockPriceURL The URL for fetching stock price data.
      * @param companyProfileURL The URL for fetching company profile data.
      * @param previousCloseURL The URL for fetching previous close data.
-     * @param openClosePriceURL The URL for fetching open and close price data.
      *
      */
     @Autowired
@@ -56,15 +53,13 @@ public class StockDataController {
                                @Value("${polygonAPIKey}") String polygonAPIKey,
                                @Value("${stockPrice}") String stockPriceURL,
                                @Value("${companyProfile}") String companyProfileURL,
-                               @Value("${previousClose}") String previousCloseURL,
-                               @Value("${dailyOpenClose}") String openClosePriceURL) {
+                               @Value("${previousClose}") String previousCloseURL) {
         this.restTemplate = restTemplate;
         this.twelveDataAPIKey = twelveDataAPIKey;
         this.polygonAPIKey = polygonAPIKey;
         this.stockPriceURL = stockPriceURL;
         this.companyProfileURL = companyProfileURL;
         this.previousCloseURL = previousCloseURL;
-        this.openClosePriceURL = openClosePriceURL;
     }
 
     /**
@@ -109,11 +104,11 @@ public class StockDataController {
      * @param symbol The stock symbol to fetch the open and close price for.
      * @return ResponseEntity containing the open and close price data or an error message.
      */
-    @GetMapping("/openClosePrice")
-    public ResponseEntity<String> getOpenClosePrice(@RequestParam String symbol) {
-        log.info("Getting open and close price for symbol: {}", symbol);
-        return fetchData(openClosePriceURL, symbol, polygonAPIKey);
-    }
+//    @GetMapping("/openClosePrice")
+//    public ResponseEntity<String> getOpenClosePrice(@RequestParam String symbol) {
+//        log.info("Getting open and close price for symbol: {}", symbol);
+//        return fetchData(openClosePriceURL, symbol, polygonAPIKey);
+//    }
 
     /**
      * This method fetches the company profile, open and close price for a list of stock symbols.
@@ -121,47 +116,47 @@ public class StockDataController {
      * @param symbols List of stock symbols to fetch the data for.
      * @return ResponseEntity containing the aggregated data for the list of stock symbols.
      */
-    @GetMapping("/bulkStockData")
-    public ResponseEntity<Map<String, Object>> getBulkStockData(@RequestParam List<String> symbols) {
-        Map<String, Object> aggregatedData = new HashMap<>();
-        for (String symbol : symbols) {
-            Map<String, Object> symbolData = new HashMap<>();
-
-            // Fetch and process company profile
-            ResponseEntity<String> companyProfileResponse = getCompanyProfile(symbol);
-            if (companyProfileResponse.getStatusCode().is2xxSuccessful()) {
-                String companyName = new JSONObject(companyProfileResponse.getBody()).getJSONObject("results").getString("name");
-                int classIndex = companyName.indexOf("Class");
-                int commonIndex = companyName.indexOf("Common");
-                if (classIndex != -1) {
-                    companyName = companyName.substring(0, classIndex).trim();
-                } else if (commonIndex != -1) {
-                    companyName = companyName.substring(0, commonIndex).trim();
-                }
-                symbolData.put("companyName", companyName);
-            } else {
-                symbolData.put("companyName", "Data not available");
-            }
-
-            // Fetch and process stock price
-            ResponseEntity<String> stockPriceResponse = getOpenClosePrice(symbol);
-            if (stockPriceResponse.getStatusCode().is2xxSuccessful()) {
-                symbolData.put("openPrice", new JSONObject(stockPriceResponse.getBody()).getJSONArray("results").getJSONObject(0).getBigDecimal("o"));
-                symbolData.put("previousClose", new JSONObject(stockPriceResponse.getBody()).getJSONArray("results").getJSONObject(0).getBigDecimal("c"));
-            } else {
-                symbolData.put("openPrice", "Data not available");
-                symbolData.put("previousClose", "Data not available");
-            }
-
-            aggregatedData.put(symbol, symbolData);
-            log.info("Aggregated data for symbol: {}", symbol);
-            log.info("Company name: {}", symbolData.get("companyName"));
-            log.info("Open price: {}", symbolData.get("openPrice"));
-            log.info("Previous close: {}", symbolData.get("previousClose"));
-            log.info("-------------------------------------------------");
-        }
-        return ResponseEntity.ok(aggregatedData);
-    }
+//    @GetMapping("/bulkStockData")
+//    public ResponseEntity<Map<String, Object>> getBulkStockData(@RequestParam List<String> symbols) {
+//        Map<String, Object> aggregatedData = new HashMap<>();
+//        for (String symbol : symbols) {
+//            Map<String, Object> symbolData = new HashMap<>();
+//
+//            // Fetch and process company profile
+//            ResponseEntity<String> companyProfileResponse = getCompanyProfile(symbol);
+//            if (companyProfileResponse.getStatusCode().is2xxSuccessful()) {
+//                String companyName = new JSONObject(companyProfileResponse.getBody()).getJSONObject("results").getString("name");
+//                int classIndex = companyName.indexOf("Class");
+//                int commonIndex = companyName.indexOf("Common");
+//                if (classIndex != -1) {
+//                    companyName = companyName.substring(0, classIndex).trim();
+//                } else if (commonIndex != -1) {
+//                    companyName = companyName.substring(0, commonIndex).trim();
+//                }
+//                symbolData.put("companyName", companyName);
+//            } else {
+//                symbolData.put("companyName", "Data not available");
+//            }
+//
+//            // Fetch and process stock price
+//            ResponseEntity<String> stockPriceResponse = getOpenClosePrice(symbol);
+//            if (stockPriceResponse.getStatusCode().is2xxSuccessful()) {
+//                symbolData.put("openPrice", new JSONObject(stockPriceResponse.getBody()).getJSONArray("results").getJSONObject(0).getBigDecimal("o"));
+//                symbolData.put("previousClose", new JSONObject(stockPriceResponse.getBody()).getJSONArray("results").getJSONObject(0).getBigDecimal("c"));
+//            } else {
+//                symbolData.put("openPrice", "Data not available");
+//                symbolData.put("previousClose", "Data not available");
+//            }
+//
+//            aggregatedData.put(symbol, symbolData);
+//            log.info("Aggregated data for symbol: {}", symbol);
+//            log.info("Company name: {}", symbolData.get("companyName"));
+//            log.info("Open price: {}", symbolData.get("openPrice"));
+//            log.info("Previous close: {}", symbolData.get("previousClose"));
+//            log.info("-------------------------------------------------");
+//        }
+//        return ResponseEntity.ok(aggregatedData);
+//    }
 
     /**
      * This method fetches the RSS feed for a given stock symbol.
