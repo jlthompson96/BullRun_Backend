@@ -2,7 +2,7 @@ spring:
   banner:
     location: asciiBoot.txt
   profiles:
-    active: local
+    active: prod
 
 twelveDataAPIKey: ${TWELVE_DATA_API_KEY}
 polygonAPIKey: ${POLYGON_API_KEY}
