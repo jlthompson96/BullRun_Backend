@@ -1,5 +1,11 @@
 package com.thompson.bullrun.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,6 +33,7 @@ import java.util.*;
  */
 @Slf4j
 @RestController
+@Tag(name = "Stock Data Controller", description = "Endpoints for fetching stock data")
 @RequestMapping("/stockData")
 public class StockDataController {
 
@@ -36,16 +43,18 @@ public class StockDataController {
     private final String stockPriceURL;
     private final String companyProfileURL;
     private final String previousCloseURL;
+    private final String companyLogoURL;
+
     /**
      * Constructor for StockDataController.
      * It initializes the RestTemplate and API keys for external services.
-     * @param restTemplate The RestTemplate to make HTTP requests.
-     * @param twelveDataAPIKey The API key for the Twelve Data API.
-     * @param polygonAPIKey The API key for the Polygon API.
-     * @param stockPriceURL The URL for fetching stock price data.
-     * @param companyProfileURL The URL for fetching company profile data.
-     * @param previousCloseURL The URL for fetching previous close data.
      *
+     * @param restTemplate      The RestTemplate to make HTTP requests.
+     * @param twelveDataAPIKey  The API key for the Twelve Data API.
+     * @param polygonAPIKey     The API key for the Polygon API.
+     * @param stockPriceURL     The URL for fetching stock price data.
+     * @param companyProfileURL The URL for fetching company profile data.
+     * @param previousCloseURL  The URL for fetching previous close data.
      */
     @Autowired
     public StockDataController(RestTemplate restTemplate,
@@ -53,13 +62,15 @@ public class StockDataController {
                                @Value("${polygonAPIKey}") String polygonAPIKey,
                                @Value("${stockPrice}") String stockPriceURL,
                                @Value("${companyProfile}") String companyProfileURL,
-                               @Value("${previousClose}") String previousCloseURL) {
+                               @Value("${previousClose}") String previousCloseURL,
+                               @Value("${companyLogo}") String companyLogoURL) {
         this.restTemplate = restTemplate;
         this.twelveDataAPIKey = twelveDataAPIKey;
         this.polygonAPIKey = polygonAPIKey;
         this.stockPriceURL = stockPriceURL;
         this.companyProfileURL = companyProfileURL;
         this.previousCloseURL = previousCloseURL;
+        this.companyLogoURL = companyLogoURL;
     }
 
     /**
@@ -68,6 +79,12 @@ public class StockDataController {
      * @param symbol The stock symbol to fetch the company profile for.
      * @return ResponseEntity containing the company profile data or an error message.
      */
+    @Operation(summary = "Get Company Profile", description = "Fetches the company profile for a given stock symbol.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Company profile fetched successfully",
+                    content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/companyProfile")
     public ResponseEntity<String> getCompanyProfile(@RequestParam String symbol) {
         log.info("Getting company profile for symbol: {}", symbol);
@@ -80,10 +97,28 @@ public class StockDataController {
      * @param symbol The stock symbol to fetch the stock price for.
      * @return ResponseEntity containing the stock price data or an error message.
      */
+    @Operation(summary = "Get Stock Price", description = "Fetches the current stock price for a given stock symbol.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Stock price fetched successfully",
+                    content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/stockPrice")
     public ResponseEntity<String> getStockPrice(@RequestParam String symbol) {
         log.info("Getting stock price for symbol: {}", symbol);
         return fetchData(stockPriceURL, symbol, twelveDataAPIKey);
+    }
+
+    @Operation(summary = "Get Company Logo", description = "Fetches the company logo for a given stock symbol.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Company logo fetched successfully",
+                    content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @GetMapping("/companyLogo")
+    public ResponseEntity<String> getCompanyLogo(@RequestParam String symbol) {
+        log.info("Getting company logo for symbol: {}", symbol);
+        return fetchData(companyLogoURL, symbol, twelveDataAPIKey);
     }
 
     /**
@@ -92,6 +127,12 @@ public class StockDataController {
      * @param symbol The stock symbol to fetch the previous closing price for.
      * @return ResponseEntity containing the previous closing price data or an error message.
      */
+    @Operation(summary = "Get Previous Close", description = "Fetches the previous closing price for a given stock symbol.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Previous closing price fetched successfully",
+                    content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/previousClose")
     public ResponseEntity<String> getPreviousClose(@RequestParam String symbol) {
         log.info("Getting previous close for symbol: {}", symbol);
@@ -164,6 +205,12 @@ public class StockDataController {
      * @param symbol The stock symbol to fetch the RSS feed for.
      * @return ResponseEntity containing the RSS feed data or an error message.
      */
+    @Operation(summary = "Get RSS Feed", description = "Fetches the RSS feed for a given stock symbol.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "RSS feed fetched successfully",
+                    content = @Content(schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/stockNews")
     public ResponseEntity<String> getRSSFeed(@RequestParam String symbol) {
         try {
@@ -190,6 +237,12 @@ public class StockDataController {
      *
      * @return Map containing the current prices for the major stock indices.
      */
+    @Operation(summary = "Get Index Prices", description = "Fetches the current prices for the major stock indices.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Index prices fetched successfully",
+                    content = @Content(schema = @Schema(implementation = Map.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
     @GetMapping("/indexPrices")
     public Map<String, String> getIndexPrices() {
         log.info("Getting index prices");

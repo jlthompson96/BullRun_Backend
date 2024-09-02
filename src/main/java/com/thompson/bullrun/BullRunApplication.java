@@ -1,5 +1,6 @@
 package com.thompson.bullrun;
 
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,6 +10,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * It uses the Lombok library for logging.
  */
 @Slf4j
+@OpenAPIDefinition
 @SpringBootApplication
 public class BullRunApplication {
 
