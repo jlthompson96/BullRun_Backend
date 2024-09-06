@@ -28,6 +28,7 @@ public class BullRunApplication {
             // Log the successful start of the application
             log.info("---------------------------------------");
             log.info("BullRunApplication started successfully");
+            log.info("Environment: {}", (Object) SpringApplication.run(BullRunApplication.class, args).getEnvironment().getActiveProfiles());
             log.info("---------------------------------------");
         } catch (Exception e) {
             // Log the error message if the application fails to start
