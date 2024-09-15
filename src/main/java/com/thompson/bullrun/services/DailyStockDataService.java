@@ -2,7 +2,6 @@ package com.thompson.bullrun.services;
 
 import com.thompson.bullrun.entities.StockEntity;
 import com.thompson.bullrun.repositories.StockRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
