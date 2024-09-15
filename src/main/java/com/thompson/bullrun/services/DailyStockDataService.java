@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
@@ -30,7 +31,10 @@ public class DailyStockDataService {
         this.stockRepository = stockRepository;
     }
 
-    @Scheduled(cron = "0 0 0 * * ?", zone = "America/New_York")
+    /**
+     * Updates the stock prices for all stocks in the database.
+     */
+    @Scheduled(cron = "0 0 0 * * 1-6", zone = "America/New_York")
     public void updateStockPrices() {
         log.info("Starting stock price update job");
 
@@ -41,12 +45,13 @@ public class DailyStockDataService {
                 String response = restTemplate.getForObject(apiUrl, String.class);
                 double price = new JSONObject(response).getDouble("price");
                 stock.setClosePrice(price);
-                stockRepository.save(stock);
+                stock.setTimestamp(LocalDateTime.now());
                 log.info("Updated price for stock: {} to {}", stock.getSymbol(), price);
             } catch (Exception e) {
                 log.error("Error updating price for stock: {}", stock.getSymbol(), e);
             }
         }
+        stockRepository.saveAll(stocks);
         log.info("Stock price update job completed");
     }
 }
