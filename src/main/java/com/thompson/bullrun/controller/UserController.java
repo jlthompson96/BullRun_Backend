@@ -1,6 +1,8 @@
 package com.thompson.bullrun.controller;
 
+import com.thompson.bullrun.entities.StockEntity;
 import com.thompson.bullrun.entities.UserEntity;
+import com.thompson.bullrun.services.StockService;
 import com.thompson.bullrun.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -11,10 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -29,6 +28,9 @@ public class UserController {
 
     @Autowired
     UserService userService;
+    
+    @Autowired
+    StockService stockService;
 
     /**
      * Handles the GET request to fetch the list of all users.
@@ -96,6 +98,18 @@ public class UserController {
             return new ResponseEntity<>(userService.createUser(userEntity), HttpStatus.OK);
         } catch (Exception e) {
             log.error("---- Error in createUser() ----");
+            log.error(e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    @GetMapping("/getUserStocks")
+    public ResponseEntity<List<StockEntity>> getUserStocks() {
+        log.info("---- Entering getUserStocks() ----");
+        try {
+            return new ResponseEntity<>(stockService.getAllStocks(), HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("---- Error in getUserStocks() ----");
             log.error(e.getMessage());
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
