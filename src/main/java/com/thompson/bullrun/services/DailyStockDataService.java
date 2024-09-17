@@ -45,8 +45,9 @@ public class DailyStockDataService {
                 String response = restTemplate.getForObject(apiUrl, String.class);
                 double price = new JSONObject(response).getDouble("price");
                 stock.setClosePrice(price);
+                stock.setCurrentValue(price * stock.getSharesOwned());
                 stock.setTimestamp(LocalDateTime.now());
-                log.info("Updated price for stock: {} to {}", stock.getSymbol(), price);
+                log.info("Updated price for stock: {} to {}. Current value: {}", stock.getSymbol(), price, stock.getCurrentValue());
             } catch (Exception e) {
                 log.error("Error updating price for stock: {}", stock.getSymbol(), e);
             }

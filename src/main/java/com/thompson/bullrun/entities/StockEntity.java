@@ -19,5 +19,6 @@ public class StockEntity {
     private String symbol;
     private double closePrice;
     private int sharesOwned;
+    private double currentValue;
     private LocalDateTime timestamp;
 }
