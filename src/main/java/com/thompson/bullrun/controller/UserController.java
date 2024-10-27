@@ -103,15 +103,17 @@ public class UserController {
         }
     }
     
-    @GetMapping("/getUserStocks")
-    public ResponseEntity<List<StockEntity>> getUserStocks() {
-        log.info("---- Entering getUserStocks() ----");
-        try {
-            return new ResponseEntity<>(stockService.getAllStocks(), HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("---- Error in getUserStocks() ----");
-            log.error(e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+@GetMapping("/getUserStocks")
+public ResponseEntity<List<StockEntity>> getUserStocks() {
+    log.info("---- Entering getUserStocks() ----");
+    try {
+        List<StockEntity> stocks = stockService.getAllStocks();
+        log.info("Stocks returned: {}", stocks.toString());
+        return new ResponseEntity<>(stocks, HttpStatus.OK);
+    } catch (Exception e) {
+        log.error("---- Error in getUserStocks() ----");
+        log.error(e.getMessage());
+        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
+}
 }
