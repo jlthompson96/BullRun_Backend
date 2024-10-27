@@ -13,6 +13,7 @@ import org.springframework.web.client.RestTemplate;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.net.URI;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -23,7 +24,7 @@ public class DailyStockDataService {
 
     private final RestTemplate restTemplate;
     private final String stockPriceURL;
-    private final String companyLogoURL; // Add this line
+    private final String companyLogoURL;
     private final String twelveDataAPIKey;
     private final StockRepository stockRepository;
 
@@ -34,7 +35,7 @@ public class DailyStockDataService {
                                  StockRepository stockRepository) {
         this.restTemplate = restTemplate;
         this.stockPriceURL = stockPriceURL;
-        this.companyLogoURL = companyLogoURL; // Now it is defined
+        this.companyLogoURL = companyLogoURL;
         this.twelveDataAPIKey = twelveDataAPIKey;
         this.stockRepository = stockRepository;
     }
@@ -91,10 +92,11 @@ public class DailyStockDataService {
         log.info("Stock price update job completed successfully for {} stocks at {}", stocks.size(), LocalDateTime.now());
     }
 
-    private byte[] downloadImage(String imageUrl) throws Exception {
-        URL url = new URL(imageUrl);
-        try (InputStream in = url.openStream()) {
-            return in.readAllBytes();
-        }
+private byte[] downloadImage(String imageUrl) throws Exception {
+    URI uri = new URI(imageUrl);
+    URL url = uri.toURL();
+    try (InputStream in = url.openStream()) {
+        return in.readAllBytes();
     }
+}
 }
