@@ -48,42 +48,10 @@ public class DailyStockDataService {
         List<StockEntity> stocks = stockRepository.findAll();
         for (StockEntity stock : stocks) {
             try {
-                String apiUrl = stockPriceURL.replace("{symbol}", stock.getSymbol()).replace("{apiKey}", twelveDataAPIKey);
-                String response = restTemplate.getForObject(apiUrl, String.class);
-                JSONObject jsonResponse = new JSONObject(response);
-                double price = jsonResponse.getDouble("price");
-
-                // Format the price to two decimal places
-                BigDecimal formattedPrice = BigDecimal.valueOf(price).setScale(2, RoundingMode.HALF_UP);
-                stock.setClosePrice(formattedPrice.doubleValue());
-
-                // Calculate and format the current value to two decimal places
-                BigDecimal currentValue = formattedPrice.multiply(BigDecimal.valueOf(stock.getSharesOwned())).setScale(2, RoundingMode.HALF_UP);
-                stock.setCurrentValue(currentValue.doubleValue());
-
+                updateStockPrice(stock);
+                updateStockLogo(stock);
                 stock.setTimestamp(LocalDateTime.now());
-
-                // Check if logo image is already present
-                if (stock.getLogoImage() == null) {
-                    String getLogo = companyLogoURL.replace("{symbol}", stock.getSymbol()).replace("{apiKey}", twelveDataAPIKey);
-                    String logoResponse = restTemplate.getForObject(getLogo, String.class); // Fetch logo response
-                    JSONObject logoJsonResponse = new JSONObject(logoResponse); // Parse logo response
-
-                    // Download and save the logo image
-                    String logoUrl = logoJsonResponse.getString("url");
-                    log.info("Logo URL for stock {}: {}", stock.getSymbol(), logoUrl);
-                    byte[] logoImage = downloadImage(logoUrl);
-                    if (logoImage != null) {
-                        log.info("Downloaded logo image for stock {}: {} bytes", stock.getSymbol(), logoImage.length);
-                        stock.setLogoImage(logoImage);
-                    } else {
-                        log.warn("Failed to download logo image for stock {}", stock.getSymbol());
-                    }
-                } else {
-                    log.info("Logo image already exists for stock {}", stock.getSymbol());
-                }
-
-                log.info("Updated price for stock: {} to {}. Current value: {}", stock.getSymbol(), formattedPrice, currentValue);
+                log.info("Updated price for stock: {} to {}. Current value: {}", stock.getSymbol(), stock.getClosePrice(), stock.getCurrentValue());
             } catch (Exception e) {
                 log.error("Error updating price for stock: {}", stock.getSymbol(), e);
             }
@@ -92,11 +60,46 @@ public class DailyStockDataService {
         log.info("Stock price update job completed successfully for {} stocks at {}", stocks.size(), LocalDateTime.now());
     }
 
-private byte[] downloadImage(String imageUrl) throws Exception {
-    URI uri = new URI(imageUrl);
-    URL url = uri.toURL();
-    try (InputStream in = url.openStream()) {
-        return in.readAllBytes();
+    private void updateStockPrice(StockEntity stock) throws Exception {
+        String apiUrl = stockPriceURL.replace("{symbol}", stock.getSymbol()).replace("{apiKey}", twelveDataAPIKey);
+        String response = restTemplate.getForObject(apiUrl, String.class);
+        JSONObject jsonResponse = new JSONObject(response);
+        double price = jsonResponse.getDouble("price");
+
+        BigDecimal formattedPrice = BigDecimal.valueOf(price).setScale(2, RoundingMode.HALF_UP);
+        stock.setClosePrice(formattedPrice.doubleValue());
+
+        BigDecimal currentValue = formattedPrice.multiply(BigDecimal.valueOf(stock.getSharesOwned())).setScale(2, RoundingMode.HALF_UP);
+        stock.setCurrentValue(currentValue.doubleValue());
     }
-}
+
+    private void updateStockLogo(StockEntity stock) throws Exception {
+        if (stock.getLogoImage() == null) {
+            String getLogo = companyLogoURL.replace("{symbol}", stock.getSymbol()).replace("{apiKey}", twelveDataAPIKey);
+            String logoResponse = restTemplate.getForObject(getLogo, String.class);
+            JSONObject logoJsonResponse = new JSONObject(logoResponse);
+
+            String logoUrl = logoJsonResponse.getString("url");
+            if (!logoUrl.isEmpty()) {
+                byte[] logoImage = downloadImage(logoUrl);
+                if (logoImage != null) {
+                    stock.setLogoImage(logoImage);
+                } else {
+                    log.warn("Failed to download logo image for stock {}", stock.getSymbol());
+                }
+            } else {
+                log.warn("Logo URL is empty for stock {}", stock.getSymbol());
+            }
+        } else {
+            log.info("Logo image already exists for stock {}", stock.getSymbol());
+        }
+    }
+
+    private byte[] downloadImage(String imageUrl) throws Exception {
+        URI uri = new URI(imageUrl);
+        URL url = uri.toURL();
+        try (InputStream in = url.openStream()) {
+            return in.readAllBytes();
+        }
+    }
 }
