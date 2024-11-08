@@ -87,16 +87,12 @@ public class StockDataController {
     })
     @GetMapping("/companyProfile")
     public ResponseEntity<String> getCompanyProfile(@RequestParam String symbol) {
-        log.info("Getting company profile for symbol: {}", symbol);
-        return fetchData(companyProfileURL, symbol, polygonAPIKey);
+        log.info("Request received for getCompanyProfile with symbol: {}", symbol);
+        ResponseEntity<String> response = fetchData(companyProfileURL, symbol, polygonAPIKey);
+        log.info("Response for getCompanyProfile with symbol {}: {}", symbol, response.getBody());
+        return response;
     }
 
-    /**
-     * This method fetches the current stock price for a given stock symbol.
-     *
-     * @param symbol The stock symbol to fetch the stock price for.
-     * @return ResponseEntity containing the stock price data or an error message.
-     */
     @Operation(summary = "Get Stock Price", description = "Fetches the current stock price for a given stock symbol.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Stock price fetched successfully",
@@ -105,8 +101,10 @@ public class StockDataController {
     })
     @GetMapping("/stockPrice")
     public ResponseEntity<String> getStockPrice(@RequestParam String symbol) {
-        log.info("Getting stock price for symbol: {}", symbol);
-        return fetchData(stockPriceURL, symbol, twelveDataAPIKey);
+        log.info("Request received for getStockPrice with symbol: {}", symbol);
+        ResponseEntity<String> response = fetchData(stockPriceURL, symbol, twelveDataAPIKey);
+        log.info("Response for getStockPrice with symbol {}: {}", symbol, response.getBody());
+        return response;
     }
 
     @Operation(summary = "Get Company Logo", description = "Fetches the company logo for a given stock symbol.")
@@ -117,16 +115,12 @@ public class StockDataController {
     })
     @GetMapping("/companyLogo")
     public ResponseEntity<String> getCompanyLogo(@RequestParam String symbol) {
-        log.info("Getting company logo for symbol: {}", symbol);
-        return fetchData(companyLogoURL, symbol, twelveDataAPIKey);
+        log.info("Request received for getCompanyLogo with symbol: {}", symbol);
+        ResponseEntity<String> response = fetchData(companyLogoURL, symbol, twelveDataAPIKey);
+        log.info("Response for getCompanyLogo with symbol {}: {}", symbol, response.getBody());
+        return response;
     }
 
-    /**
-     * This method fetches the previous closing price for a given stock symbol.
-     *
-     * @param symbol The stock symbol to fetch the previous closing price for.
-     * @return ResponseEntity containing the previous closing price data or an error message.
-     */
     @Operation(summary = "Get Previous Close", description = "Fetches the previous closing price for a given stock symbol.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Previous closing price fetched successfully",
@@ -135,8 +129,10 @@ public class StockDataController {
     })
     @GetMapping("/previousClose")
     public ResponseEntity<String> getPreviousClose(@RequestParam String symbol) {
-        log.info("Getting previous close for symbol: {}", symbol);
-        return fetchData(previousCloseURL, symbol, twelveDataAPIKey);
+        log.info("Request received for getPreviousClose with symbol: {}", symbol);
+        ResponseEntity<String> response = fetchData(previousCloseURL, symbol, twelveDataAPIKey);
+        log.info("Response for getPreviousClose with symbol {}: {}", symbol, response.getBody());
+        return response;
     }
 
     /**
@@ -205,6 +201,7 @@ public class StockDataController {
      * @param symbol The stock symbol to fetch the RSS feed for.
      * @return ResponseEntity containing the RSS feed data or an error message.
      */
+
     @Operation(summary = "Get RSS Feed", description = "Fetches the RSS feed for a given stock symbol.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "RSS feed fetched successfully",
@@ -213,8 +210,8 @@ public class StockDataController {
     })
     @GetMapping("/stockNews")
     public ResponseEntity<String> getRSSFeed(@RequestParam String symbol) {
+        log.info("Request received for getRSSFeed with symbol: {}", symbol);
         try {
-            log.info("Getting RSS feed for symbol: {}", symbol);
             final String url = "https://feeds.finance.yahoo.com/rss/2.0/headline?s=" + symbol;
             RestTemplate restTemplate = new RestTemplate();
             String rssFeed = restTemplate.getForObject(url, String.class);
@@ -223,8 +220,7 @@ public class StockDataController {
             JSONObject json = XML.toJSONObject(rssFeed);
             JSONArray items = json.getJSONObject("rss").getJSONObject("channel").getJSONArray("item");
 
-            log.info("RSS feed for symbol: {} retrieved successfully", symbol);
-            log.info("RSS feed: {}", items);
+            log.info("Response for getRSSFeed with symbol {}: {}", symbol, items.toString());
             return ResponseEntity.ok().body(items.toString());
         } catch (Exception e) {
             log.error("Error occurred while getting RSS feed for symbol: {}", symbol, e);
@@ -232,11 +228,6 @@ public class StockDataController {
         }
     }
 
-    /**
-     * This method fetches the current prices for the major stock indices.
-     *
-     * @return Map containing the current prices for the major stock indices.
-     */
     @Operation(summary = "Get Index Prices", description = "Fetches the current prices for the major stock indices.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Index prices fetched successfully",
@@ -245,7 +236,7 @@ public class StockDataController {
     })
     @GetMapping("/indexPrices")
     public Map<String, String> getIndexPrices() {
-        log.info("Getting index prices");
+        log.info("Request received for getIndexPrices");
         List<String> indexSymbols = Arrays.asList("DJI", "SPX", "IXIC");
         Map<String, String> responseMap = new HashMap<>();
 
@@ -257,6 +248,7 @@ public class StockDataController {
             responseMap.put(symbol, formattedPrice);
         }
 
+        log.info("Response for getIndexPrices: {}", responseMap);
         return responseMap;
     }
 

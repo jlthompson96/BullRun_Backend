@@ -18,6 +18,7 @@ public class StockEntity {
     private String id;
     private String symbol;
     private double closePrice;
+    private byte[] logoImage;
     private int sharesOwned;
     private double currentValue;
     private LocalDateTime timestamp;
