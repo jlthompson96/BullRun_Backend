@@ -26,11 +26,8 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
+import java.util.stream.Collectors;
 
-/**
- * This is a controller class for handling stock data related requests.
- * It uses RestTemplate to make HTTP requests to external APIs for fetching stock data.
- */
 @Slf4j
 @RestController
 @Tag(name = "Stock Data Controller", description = "Endpoints for fetching stock data")
@@ -45,17 +42,6 @@ public class StockDataController {
     private final String previousCloseURL;
     private final String companyLogoURL;
 
-    /**
-     * Constructor for StockDataController.
-     * It initializes the RestTemplate and API keys for external services.
-     *
-     * @param restTemplate      The RestTemplate to make HTTP requests.
-     * @param twelveDataAPIKey  The API key for the Twelve Data API.
-     * @param polygonAPIKey     The API key for the Polygon API.
-     * @param stockPriceURL     The URL for fetching stock price data.
-     * @param companyProfileURL The URL for fetching company profile data.
-     * @param previousCloseURL  The URL for fetching previous close data.
-     */
     @Autowired
     public StockDataController(RestTemplate restTemplate,
                                @Value("${twelveDataAPIKey}") String twelveDataAPIKey,
@@ -73,233 +59,130 @@ public class StockDataController {
         this.companyLogoURL = companyLogoURL;
     }
 
-    /**
-     * This method fetches the company profile for a given stock symbol.
-     *
-     * @param symbol The stock symbol to fetch the company profile for.
-     * @return ResponseEntity containing the company profile data or an error message.
-     */
-    @Operation(summary = "Get Company Profile", description = "Fetches the company profile for a given stock symbol.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Company profile fetched successfully",
-                    content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
     @GetMapping("/companyProfile")
     public ResponseEntity<String> getCompanyProfile(@RequestParam String symbol) {
-        log.info("Request received for getCompanyProfile with symbol: {}", symbol);
+        log.info("Fetching company profile for symbol: {}", symbol);
         ResponseEntity<String> response = fetchData(companyProfileURL, symbol, polygonAPIKey);
-        log.info("Response for getCompanyProfile with symbol {}: {}", symbol, response.getBody());
+        logResponseStatus("Company Profile", symbol, response);
         return response;
     }
 
-    @Operation(summary = "Get Stock Price", description = "Fetches the current stock price for a given stock symbol.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Stock price fetched successfully",
-                    content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
     @GetMapping("/stockPrice")
     public ResponseEntity<String> getStockPrice(@RequestParam String symbol) {
-        log.info("Request received for getStockPrice with symbol: {}", symbol);
+        log.info("Fetching stock price for symbol: {}", symbol);
         ResponseEntity<String> response = fetchData(stockPriceURL, symbol, twelveDataAPIKey);
-        log.info("Response for getStockPrice with symbol {}: {}", symbol, response.getBody());
+        logResponseStatus("Stock Price", symbol, response);
         return response;
     }
 
-    @Operation(summary = "Get Company Logo", description = "Fetches the company logo for a given stock symbol.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Company logo fetched successfully",
-                    content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
     @GetMapping("/companyLogo")
     public ResponseEntity<String> getCompanyLogo(@RequestParam String symbol) {
-        log.info("Request received for getCompanyLogo with symbol: {}", symbol);
+        log.info("Fetching company logo for symbol: {}", symbol);
         ResponseEntity<String> response = fetchData(companyLogoURL, symbol, twelveDataAPIKey);
-        log.info("Response for getCompanyLogo with symbol {}: {}", symbol, response.getBody());
+        logResponseStatus("Company Logo", symbol, response);
         return response;
     }
 
-    @Operation(summary = "Get Previous Close", description = "Fetches the previous closing price for a given stock symbol.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Previous closing price fetched successfully",
-                    content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
     @GetMapping("/previousClose")
     public ResponseEntity<String> getPreviousClose(@RequestParam String symbol) {
-        log.info("Request received for getPreviousClose with symbol: {}", symbol);
+        log.info("Fetching previous close for symbol: {}", symbol);
         ResponseEntity<String> response = fetchData(previousCloseURL, symbol, twelveDataAPIKey);
-        log.info("Response for getPreviousClose with symbol {}: {}", symbol, response.getBody());
+        logResponseStatus("Previous Close", symbol, response);
         return response;
     }
 
-    /**
-     * This method fetches the open and close price for a given stock symbol.
-     *
-     * @param symbol The stock symbol to fetch the open and close price for.
-     * @return ResponseEntity containing the open and close price data or an error message.
-     */
-//    @GetMapping("/openClosePrice")
-//    public ResponseEntity<String> getOpenClosePrice(@RequestParam String symbol) {
-//        log.info("Getting open and close price for symbol: {}", symbol);
-//        return fetchData(openClosePriceURL, symbol, polygonAPIKey);
-//    }
-
-    /**
-     * This method fetches the company profile, open and close price for a list of stock symbols.
-     *
-     * @param symbols List of stock symbols to fetch the data for.
-     * @return ResponseEntity containing the aggregated data for the list of stock symbols.
-     */
-//    @GetMapping("/bulkStockData")
-//    public ResponseEntity<Map<String, Object>> getBulkStockData(@RequestParam List<String> symbols) {
-//        Map<String, Object> aggregatedData = new HashMap<>();
-//        for (String symbol : symbols) {
-//            Map<String, Object> symbolData = new HashMap<>();
-//
-//            // Fetch and process company profile
-//            ResponseEntity<String> companyProfileResponse = getCompanyProfile(symbol);
-//            if (companyProfileResponse.getStatusCode().is2xxSuccessful()) {
-//                String companyName = new JSONObject(companyProfileResponse.getBody()).getJSONObject("results").getString("name");
-//                int classIndex = companyName.indexOf("Class");
-//                int commonIndex = companyName.indexOf("Common");
-//                if (classIndex != -1) {
-//                    companyName = companyName.substring(0, classIndex).trim();
-//                } else if (commonIndex != -1) {
-//                    companyName = companyName.substring(0, commonIndex).trim();
-//                }
-//                symbolData.put("companyName", companyName);
-//            } else {
-//                symbolData.put("companyName", "Data not available");
-//            }
-//
-//            // Fetch and process stock price
-//            ResponseEntity<String> stockPriceResponse = getOpenClosePrice(symbol);
-//            if (stockPriceResponse.getStatusCode().is2xxSuccessful()) {
-//                symbolData.put("openPrice", new JSONObject(stockPriceResponse.getBody()).getJSONArray("results").getJSONObject(0).getBigDecimal("o"));
-//                symbolData.put("previousClose", new JSONObject(stockPriceResponse.getBody()).getJSONArray("results").getJSONObject(0).getBigDecimal("c"));
-//            } else {
-//                symbolData.put("openPrice", "Data not available");
-//                symbolData.put("previousClose", "Data not available");
-//            }
-//
-//            aggregatedData.put(symbol, symbolData);
-//            log.info("Aggregated data for symbol: {}", symbol);
-//            log.info("Company name: {}", symbolData.get("companyName"));
-//            log.info("Open price: {}", symbolData.get("openPrice"));
-//            log.info("Previous close: {}", symbolData.get("previousClose"));
-//            log.info("-------------------------------------------------");
-//        }
-//        return ResponseEntity.ok(aggregatedData);
-//    }
-
-    /**
-     * This method fetches the RSS feed for a given stock symbol.
-     *
-     * @param symbol The stock symbol to fetch the RSS feed for.
-     * @return ResponseEntity containing the RSS feed data or an error message.
-     */
-
-    @Operation(summary = "Get RSS Feed", description = "Fetches the RSS feed for a given stock symbol.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "RSS feed fetched successfully",
-                    content = @Content(schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
     @GetMapping("/stockNews")
     public ResponseEntity<String> getRSSFeed(@RequestParam String symbol) {
-        log.info("Request received for getRSSFeed with symbol: {}", symbol);
+        log.info("Fetching RSS feed for symbol: {}", symbol);
         try {
             final String url = "https://feeds.finance.yahoo.com/rss/2.0/headline?s=" + symbol;
-            RestTemplate restTemplate = new RestTemplate();
             String rssFeed = restTemplate.getForObject(url, String.class);
 
-            assert rssFeed != null;
+            if (rssFeed == null) {
+                log.warn("RSS feed returned null for symbol: {}", symbol);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("RSS feed is unavailable.");
+            }
+
             JSONObject json = XML.toJSONObject(rssFeed);
             JSONArray items = json.getJSONObject("rss").getJSONObject("channel").getJSONArray("item");
 
-            log.info("Response for getRSSFeed with symbol {}: {}", symbol, items.toString());
-            return ResponseEntity.ok().body(items.toString());
+            log.info("Successfully fetched RSS feed items for symbol: {}", symbol);
+            return ResponseEntity.ok(items.toString());
         } catch (Exception e) {
-            log.error("Error occurred while getting RSS feed for symbol: {}", symbol, e);
+            log.error("Error occurred while fetching RSS feed for symbol: {}", symbol, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving RSS feed");
         }
     }
 
-    @Operation(summary = "Get Index Prices", description = "Fetches the current prices for the major stock indices.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Index prices fetched successfully",
-                    content = @Content(schema = @Schema(implementation = Map.class))),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
-    })
     @GetMapping("/indexPrices")
     public Map<String, String> getIndexPrices() {
-        log.info("Request received for getIndexPrices");
+        log.info("Fetching index prices for major indices");
         List<String> indexSymbols = Arrays.asList("DJI", "SPX", "IXIC");
-        Map<String, String> responseMap = new HashMap<>();
 
-        for (String symbol : indexSymbols) {
-            ResponseEntity<String> responseEntity = fetchData(stockPriceURL, symbol, twelveDataAPIKey);
-            String priceStr = new JSONObject(Objects.requireNonNull(responseEntity.getBody())).getString("price");
-            double price = Double.parseDouble(priceStr);
-            String formattedPrice = formatPrice(price);
-            responseMap.put(symbol, formattedPrice);
-        }
+        Map<String, String> indexPrices = indexSymbols.stream()
+                .collect(Collectors.toMap(symbol -> symbol, this::getFormattedPrice));
 
-        log.info("Response for getIndexPrices: {}", responseMap);
-        return responseMap;
+        log.info("Index prices fetched successfully: {}", indexPrices);
+        return indexPrices;
     }
 
-    /**
-     * This method formats the price to include commas and two decimal places.
-     *
-     * @param price The price to format.
-     * @return The formatted price.
-     */
-    String formatPrice(double price) {
+    private String getFormattedPrice(String symbol) {
+        log.debug("Fetching and formatting price for index symbol: {}", symbol);
+        ResponseEntity<String> response = fetchData(stockPriceURL, symbol, twelveDataAPIKey);
+
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            String priceStr = new JSONObject(response.getBody()).getString("price");
+            double price = Double.parseDouble(priceStr);
+            String formattedPrice = formatPrice(price);
+            log.debug("Formatted price for symbol {}: {}", symbol, formattedPrice);
+            return formattedPrice;
+        } else {
+            log.warn("Failed to fetch price for symbol {}. Status: {}", symbol, response.getStatusCode());
+            return "N/A";
+        }
+    }
+
+    private String formatPrice(double price) {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
         DecimalFormat decimalFormat = new DecimalFormat("#,##0.00", symbols);
         decimalFormat.setRoundingMode(RoundingMode.HALF_UP);
-        return decimalFormat.format(price);
+        String formattedPrice = decimalFormat.format(price);
+        log.debug("Formatted price: {}", formattedPrice);
+        return formattedPrice;
     }
 
-    /**
-     * This method fetches data from an external API for a given stock symbol.
-     *
-     * @param url    The URL of the external API.
-     * @param symbol The stock symbol to fetch data for.
-     * @param apiKey The API key for the external service.
-     * @return ResponseEntity containing the data or an error message.
-     */
-    ResponseEntity<String> fetchData(String url, String symbol, String apiKey) {
-        log.info("Fetching data for symbol: {}", symbol);
+    private ResponseEntity<String> fetchData(String url, String symbol, String apiKey) {
+        log.info("Fetching data for symbol: {} from endpoint: {}", symbol, url);
         try {
             String apiUrl = constructApiUrl(url, symbol, apiKey);
-            ResponseEntity<String> responseEntity = restTemplate.getForEntity(apiUrl, String.class);
-            if (responseEntity.getStatusCode().is2xxSuccessful()) {
+            ResponseEntity<String> response = restTemplate.getForEntity(apiUrl, String.class);
+
+            if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("Successfully fetched data for symbol: {}", symbol);
-                return responseEntity;
             } else {
-                log.error("Error fetching data for symbol: {}. Status code: {}", symbol, responseEntity.getStatusCode());
-                return ResponseEntity.status(responseEntity.getStatusCode()).body("Error retrieving data");
+                log.warn("Received non-2xx response for symbol: {}. Status: {}", symbol, response.getStatusCode());
             }
-        } catch (HttpClientErrorException | ResourceAccessException e) {
-            log.error("Exception occurred while fetching data for symbol: {}", symbol, e);
+            return response;
+        } catch (HttpClientErrorException e) {
+            log.error("Client error while fetching data for symbol: {}. Status code: {}", symbol, e.getStatusCode(), e);
+            return ResponseEntity.status(e.getStatusCode()).body("Error retrieving data");
+        } catch (ResourceAccessException e) {
+            log.error("Resource access error while fetching data for symbol: {}", symbol, e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error retrieving data");
         }
     }
 
-    /**
-     * This method constructs the API URL by replacing placeholders with actual values.
-     *
-     * @param endpoint The endpoint URL with placeholders.
-     * @param symbol   The stock symbol to fetch data for.
-     * @param apiKey   The API key for the external service.
-     * @return The constructed API URL.
-     */
     private String constructApiUrl(String endpoint, String symbol, String apiKey) {
-        return endpoint.replace("{apiKey}", apiKey).replace("{symbol}", symbol);
+        String apiUrl = endpoint.replace("{apiKey}", apiKey).replace("{symbol}", symbol);
+        log.debug("Constructed API URL: {}", apiUrl);
+        return apiUrl;
+    }
+
+    private void logResponseStatus(String dataType, String symbol, ResponseEntity<String> response) {
+        if (response.getStatusCode().is2xxSuccessful()) {
+            log.info("{} data successfully fetched for symbol: {}", dataType, symbol);
+        } else {
+            log.warn("Failed to fetch {} data for symbol: {}. Status: {}", dataType, symbol, response.getStatusCode());
+        }
     }
 }
