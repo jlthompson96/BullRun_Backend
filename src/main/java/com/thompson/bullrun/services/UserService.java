@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * UserService is a service class that provides methods to interact with the UserRepository.
@@ -21,6 +22,7 @@ public class UserService {
 
     /**
      * Constructor for UserService.
+     *
      * @param userRepository UserRepository object dependency.
      */
     @Autowired
@@ -29,49 +31,62 @@ public class UserService {
     }
 
     /**
-     * This method is used to get a list of all users.
+     * Retrieves a list of all users.
+     *
      * @return List of UserEntity objects. Returns an empty list if an exception occurs.
      */
-    public List<UserEntity> getUserList(){
+    public List<UserEntity> getUserList() {
+        log.info("Attempting to fetch the user list.");
         try {
-            log.info("---- Entering getUserList() ----");
-            log.info(userRepository.findAll().toString());
-            return userRepository.findAll();
+            List<UserEntity> users = userRepository.findAll();
+            log.info("Successfully retrieved {} users.", users.size());
+            return users;
         } catch (Exception e) {
-            log.error("---- Error in getUserList() ----");
-            log.error(e.getMessage());
+            log.error("Failed to retrieve user list.", e);
             return Collections.emptyList();
         }
     }
 
     /**
-     * This method is used to get a specific user.
-     * @param userEntity UserEntity object with the id of the user to be fetched.
-     * @return UserEntity object. Returns null if an exception occurs or if the user is not found.
+     * Retrieves a specific user by ID.
+     *
+     * @param userEntity UserEntity object containing the ID of the user to be fetched.
+     * @return UserEntity object if found, otherwise null.
      */
     public UserEntity getUser(UserEntity userEntity) {
+        Long userId = Long.valueOf(userEntity.getId());
+        log.info("Attempting to fetch user with ID: {}", userId);
+
         try {
-            log.info("---- Entering getUser() ----");
-            return userRepository.findById(userEntity.getId()).orElse(null);
+            Optional<UserEntity> user = userRepository.findById(String.valueOf(userId));
+            if (user.isPresent()) {
+                log.info("User with ID: {} found.", userId);
+                return user.get();
+            } else {
+                log.warn("User with ID: {} not found.", userId);
+                return null;
+            }
         } catch (Exception e) {
-            log.error("---- Error in getUser() ----");
-            log.error(e.getMessage());
+            log.error("Error occurred while fetching user with ID: {}", userId, e);
             return null;
         }
     }
 
     /**
-     * This method is used to create a new user.
-     * @param userEntity UserEntity object with the details of the user to be created.
-     * @return UserEntity object. Returns null if an exception occurs.
+     * Creates a new user.
+     *
+     * @param userEntity UserEntity object containing the details of the user to be created.
+     * @return Created UserEntity object, or null if an error occurs.
      */
     public UserEntity createUser(UserEntity userEntity) {
+        log.info("Attempting to create a new user with username: {}", userEntity);
+
         try {
-            log.info("---- Entering createUser() ----");
-            return userRepository.save(userEntity);
+            UserEntity createdUser = userRepository.save(userEntity);
+            log.info("Successfully created user with ID: {}", createdUser.getId());
+            return createdUser;
         } catch (Exception e) {
-            log.error("---- Error in createUser() ----");
-            log.error(e.getMessage());
+            log.error("Failed to create user with username: {}", userEntity, e);
             return null;
         }
     }

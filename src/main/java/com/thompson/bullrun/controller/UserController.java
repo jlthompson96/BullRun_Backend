@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * UserController is a REST controller that handles HTTP requests related to UserEntity.
@@ -26,11 +27,14 @@ import java.util.List;
 @RequestMapping("/users")
 public class UserController {
 
+    private final UserService userService;
+    private final StockService stockService;
+
     @Autowired
-    UserService userService;
-    
-    @Autowired
-    StockService stockService;
+    public UserController(UserService userService, StockService stockService) {
+        this.userService = userService;
+        this.stockService = stockService;
+    }
 
     /**
      * Handles the GET request to fetch the list of all users.
@@ -43,16 +47,10 @@ public class UserController {
                     content = @Content(schema = @Schema(implementation = UserEntity.class))),
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
-    @RequestMapping("/getUserList")
+    @GetMapping("/getUserList")
     public ResponseEntity<List<UserEntity>> getUserList() {
-        log.info("---- Entering userList() ----");
-        try {
-            return new ResponseEntity<>(userService.getUserList(), HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("---- Error in userList() ----");
-            log.error(e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        log.info("Fetching the list of all users");
+        return processRequest(userService::getUserList, "user list");
     }
 
     /**
@@ -69,14 +67,8 @@ public class UserController {
     })
     @PostMapping("/getUser")
     public ResponseEntity<UserEntity> getUser(@RequestBody UserEntity userEntity) {
-        log.info("---- Entering getUser() ----");
-        try {
-            return new ResponseEntity<>(userService.getUser(userEntity), HttpStatus.OK);
-        } catch (Exception e) {
-            log.error("---- Error in getUser() ----");
-            log.error(e.getMessage());
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        log.info("Fetching user details for username: {}", userEntity);
+        return processRequest(() -> userService.getUser(userEntity), "user details");
     }
 
     /**
@@ -93,27 +85,43 @@ public class UserController {
     })
     @PostMapping("/createUser")
     public ResponseEntity<UserEntity> createUser(@RequestBody UserEntity userEntity) {
-        log.info("---- Entering createUser() ----");
+        log.info("Creating new user with username: {}", userEntity);
+        return processRequest(() -> userService.createUser(userEntity), "new user");
+    }
+
+    /**
+     * Handles the GET request to fetch all stocks associated with a user.
+     *
+     * @return ResponseEntity containing the list of StockEntity and HTTP status.
+     */
+    @Operation(summary = "Fetches all stocks associated with the user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Stocks fetched successfully",
+                    content = @Content(schema = @Schema(implementation = StockEntity.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @GetMapping("/getUserStocks")
+    public ResponseEntity<List<StockEntity>> getUserStocks() {
+        log.info("Fetching all stocks for user");
+        return processRequest(stockService::getAllStocks, "stocks list");
+    }
+
+    /**
+     * Utility method to process a request and handle exceptions consistently.
+     *
+     * @param action Supplier that provides the data to be returned in ResponseEntity.
+     * @param dataType A descriptive string for the data being fetched, used in logging.
+     * @param <T> Type of data expected in the response.
+     * @return ResponseEntity containing the data and HTTP status.
+     */
+    private <T> ResponseEntity<T> processRequest(Supplier<T> action, String dataType) {
         try {
-            return new ResponseEntity<>(userService.createUser(userEntity), HttpStatus.OK);
+            T data = action.get();
+            log.info("Successfully fetched {}", dataType);
+            return new ResponseEntity<>(data, HttpStatus.OK);
         } catch (Exception e) {
-            log.error("---- Error in createUser() ----");
-            log.error(e.getMessage());
+            log.error("Failed to fetch {}", dataType, e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-    
-@GetMapping("/getUserStocks")
-public ResponseEntity<List<StockEntity>> getUserStocks() {
-    log.info("---- Entering getUserStocks() ----");
-    try {
-        List<StockEntity> stocks = stockService.getAllStocks();
-        log.info("Stocks returned: {}", stocks.toString());
-        return new ResponseEntity<>(stocks, HttpStatus.OK);
-    } catch (Exception e) {
-        log.error("---- Error in getUserStocks() ----");
-        log.error(e.getMessage());
-        return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-}
 }
