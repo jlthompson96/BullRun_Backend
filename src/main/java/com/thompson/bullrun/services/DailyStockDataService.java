@@ -40,7 +40,7 @@ public class DailyStockDataService {
         this.stockRepository = stockRepository;
     }
 
-    @PostConstruct
+    //    @PostConstruct
     @Scheduled(cron = "0 0 0 * * 1-6", zone = "America/New_York")
     public void updateStockPrices() {
         log.info("Starting stock price update job");
@@ -60,6 +60,32 @@ public class DailyStockDataService {
         log.info("Stock price update job completed successfully for {} stocks at {}", stocks.size(), LocalDateTime.now());
     }
 
+    public void updateOneStockPrice(StockEntity stock) {
+        log.info("Starting stock price update for stock: {}", stock.getSymbol());
+        try {
+            updateStockPriceDetails(stock);
+            updateStockLogo(stock);
+            stock.setTimestamp(LocalDateTime.now());
+            stockRepository.save(stock);
+            log.info("Updated price for stock: {} to {}. Current value: {}", stock.getSymbol(), stock.getClosePrice(), stock.getCurrentValue());
+        } catch (Exception e) {
+            log.error("Error updating price for stock: {}", stock.getSymbol(), e);
+        }
+    }
+
+    private void updateStockPriceDetails(StockEntity stock) throws Exception {
+        String apiUrl = stockPriceURL.replace("{symbol}", stock.getSymbol()).replace("{apiKey}", twelveDataAPIKey);
+        String response = restTemplate.getForObject(apiUrl, String.class);
+        JSONObject jsonResponse = new JSONObject(response);
+        double price = jsonResponse.getDouble("price");
+
+        BigDecimal formattedPrice = BigDecimal.valueOf(price).setScale(2, RoundingMode.HALF_UP);
+        stock.setClosePrice(formattedPrice.doubleValue());
+
+        BigDecimal currentValue = formattedPrice.multiply(BigDecimal.valueOf(stock.getSharesOwned())).setScale(2, RoundingMode.HALF_UP);
+        stock.setCurrentValue(currentValue.doubleValue());
+    }
+
     private void updateStockPrice(StockEntity stock) throws Exception {
         String apiUrl = stockPriceURL.replace("{symbol}", stock.getSymbol()).replace("{apiKey}", twelveDataAPIKey);
         String response = restTemplate.getForObject(apiUrl, String.class);
@@ -74,25 +100,13 @@ public class DailyStockDataService {
     }
 
     private void updateStockLogo(StockEntity stock) throws Exception {
-        if (stock.getLogoImage() == null) {
             String getLogo = companyLogoURL.replace("{symbol}", stock.getSymbol()).replace("{apiKey}", twelveDataAPIKey);
             String logoResponse = restTemplate.getForObject(getLogo, String.class);
             JSONObject logoJsonResponse = new JSONObject(logoResponse);
 
             String logoUrl = logoJsonResponse.getString("url");
-            if (!logoUrl.isEmpty()) {
-                byte[] logoImage = downloadImage(logoUrl);
-                if (logoImage != null) {
-                    stock.setLogoImage(logoImage);
-                } else {
-                    log.warn("Failed to download logo image for stock {}", stock.getSymbol());
-                }
-            } else {
-                log.warn("Logo URL is empty for stock {}", stock.getSymbol());
-            }
-        } else {
-            log.info("Logo image already exists for stock {}", stock.getSymbol());
-        }
+            byte[] logoImage = downloadImage(logoUrl);
+            stock.setLogoImage(logoImage);
     }
 
     private byte[] downloadImage(String imageUrl) throws Exception {

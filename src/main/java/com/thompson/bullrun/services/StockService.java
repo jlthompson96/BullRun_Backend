@@ -16,12 +16,4 @@ public class StockService {
     public List<StockEntity> getAllStocks() {
         return stockRepository.findAll();
     }
-
-    public StockEntity getStockById(String id) {
-        return stockRepository.findById(id).orElse(null);
-    }
-
-    public StockEntity addStock(StockEntity stock) {
-        return stockRepository.save(stock);
-    }
 }

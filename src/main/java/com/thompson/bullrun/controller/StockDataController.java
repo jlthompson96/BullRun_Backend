@@ -1,6 +1,7 @@
 package com.thompson.bullrun.controller;
 
 import com.thompson.bullrun.entities.StockEntity;
+import com.thompson.bullrun.services.DailyStockDataService;
 import com.thompson.bullrun.services.StockService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -48,7 +49,7 @@ public class StockDataController {
                                @Value("${stockPrice}") String stockPriceURL,
                                @Value("${companyProfile}") String companyProfileURL,
                                @Value("${previousClose}") String previousCloseURL,
-                               @Value("${companyLogo}") String companyLogoURL, StockService stockService) {
+                               @Value("${companyLogo}") String companyLogoURL, StockService stockService, DailyStockDataService dailyStockDataService) {
         this.restTemplate = restTemplate;
         this.twelveDataAPIKey = twelveDataAPIKey;
         this.polygonAPIKey = polygonAPIKey;
@@ -57,11 +58,13 @@ public class StockDataController {
         this.previousCloseURL = previousCloseURL;
         this.companyLogoURL = companyLogoURL;
         this.stockService = stockService;
+        this.dailyStockDataService = dailyStockDataService;
     }
 
     private final String[] indexSymbols = {"DJI", "SPX", "IXIC"};
     private final String[] indexNames = {"Dow Jones Industrial Average", "S&P 500", "Nasdaq Composite"};
     private final StockService stockService;
+    private final DailyStockDataService dailyStockDataService;
 
     @GetMapping("/companyProfile")
     public ResponseEntity<String> getCompanyProfile(@RequestParam String symbol) {
@@ -140,9 +143,10 @@ public class StockDataController {
     public ResponseEntity<StockEntity> addStock(@RequestBody StockEntity stockEntity) {
         log.info("Adding new stock with symbol: {}", stockEntity.getSymbol());
         try {
-            StockEntity createdStock = stockService.addStock(stockEntity);
-            log.info("Successfully added new stock with id: {}", createdStock.getId());
-            return new ResponseEntity<>(createdStock, HttpStatus.OK);
+            dailyStockDataService.updateOneStockPrice(stockEntity);
+//            StockEntity createdStock = stockService.addStock(stockEntity);
+            log.info("Successfully added new stock with id: {}", stockEntity.getId());
+            return new ResponseEntity<>(stockEntity, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Failed to add new stock", e);
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
