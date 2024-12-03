@@ -20,4 +20,8 @@ public class StockService {
     public StockEntity getStockById(String id) {
         return stockRepository.findById(id).orElse(null);
     }
+
+    public StockEntity addStock(StockEntity stock) {
+        return stockRepository.save(stock);
+    }
 }

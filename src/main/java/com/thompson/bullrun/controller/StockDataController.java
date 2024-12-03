@@ -1,5 +1,7 @@
 package com.thompson.bullrun.controller;
 
+import com.thompson.bullrun.entities.StockEntity;
+import com.thompson.bullrun.services.StockService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,10 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
@@ -49,7 +48,7 @@ public class StockDataController {
                                @Value("${stockPrice}") String stockPriceURL,
                                @Value("${companyProfile}") String companyProfileURL,
                                @Value("${previousClose}") String previousCloseURL,
-                               @Value("${companyLogo}") String companyLogoURL) {
+                               @Value("${companyLogo}") String companyLogoURL, StockService stockService) {
         this.restTemplate = restTemplate;
         this.twelveDataAPIKey = twelveDataAPIKey;
         this.polygonAPIKey = polygonAPIKey;
@@ -57,7 +56,12 @@ public class StockDataController {
         this.companyProfileURL = companyProfileURL;
         this.previousCloseURL = previousCloseURL;
         this.companyLogoURL = companyLogoURL;
+        this.stockService = stockService;
     }
+
+    private final String[] indexSymbols = {"DJI", "SPX", "IXIC"};
+    private final String[] indexNames = {"Dow Jones Industrial Average", "S&P 500", "Nasdaq Composite"};
+    private final StockService stockService;
 
     @GetMapping("/companyProfile")
     public ResponseEntity<String> getCompanyProfile(@RequestParam String symbol) {
@@ -124,6 +128,25 @@ public class StockDataController {
 
         log.info("Index prices fetched successfully: {}", indexPrices);
         return indexPrices;
+    }
+
+    @Operation(summary = "Adds a new stock")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Stock added successfully",
+                    content = @Content(schema = @Schema(implementation = StockEntity.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @PostMapping("/addStock")
+    public ResponseEntity<StockEntity> addStock(@RequestBody StockEntity stockEntity) {
+        log.info("Adding new stock with symbol: {}", stockEntity.getSymbol());
+        try {
+            StockEntity createdStock = stockService.addStock(stockEntity);
+            log.info("Successfully added new stock with id: {}", createdStock.getId());
+            return new ResponseEntity<>(createdStock, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Failed to add new stock", e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     private String getFormattedPrice(String symbol) {
