@@ -144,8 +144,7 @@ public class StockDataController {
         log.info("Adding new stock with symbol: {}", stockEntity.getSymbol());
         try {
             dailyStockDataService.updateOneStockPrice(stockEntity);
-//            StockEntity createdStock = stockService.addStock(stockEntity);
-            log.info("Successfully added new stock with id: {}", stockEntity.getId());
+            log.info("Successfully added {} stock", stockEntity.getSymbol());
             return new ResponseEntity<>(stockEntity, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Failed to add new stock", e);

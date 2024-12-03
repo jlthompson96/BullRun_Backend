@@ -10,7 +10,7 @@ A Spring application to manage financial portfolios and provide financial litera
 - [ ] Dashboard to track all of the above
 
 ## Technologies
-- Java 17 <img align="left" alt="Java" width="26px" src="https://github.com/jlthompson96/vscode-material-icon-theme/blob/master/icons/java.svg" />
+- Java 21 <img align="left" alt="Java" width="26px" src="https://github.com/jlthompson96/vscode-material-icon-theme/blob/master/icons/java.svg" />
 - Spring Boot <img align="left" alt="JavaScipt" width="26px" src="https://github.com/jlthompson96/vscode-material-icon-theme/blob/master/icons/mint.svg" />
 - Gradle <img align="left" alt="JavaScipt" width="26px" src="https://github.com/jlthompson96/vscode-material-icon-theme/blob/master/icons/gradle.svg" />
 - MongoDB <img align="left" alt="JavaScipt" width="26px" src="https://github.com/jlthompson96/vscode-material-icon-theme/blob/master/icons/mint.svg" />
