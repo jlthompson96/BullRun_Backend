@@ -57,13 +57,11 @@ public class StockDataController {
         this.companyProfileURL = companyProfileURL;
         this.previousCloseURL = previousCloseURL;
         this.companyLogoURL = companyLogoURL;
-        this.stockService = stockService;
         this.dailyStockDataService = dailyStockDataService;
     }
 
     private final String[] indexSymbols = {"DJI", "SPX", "IXIC"};
     private final String[] indexNames = {"Dow Jones Industrial Average", "S&P 500", "Nasdaq Composite"};
-    private final StockService stockService;
     private final DailyStockDataService dailyStockDataService;
 
     @GetMapping("/companyProfile")
