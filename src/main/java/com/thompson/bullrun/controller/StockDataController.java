@@ -49,7 +49,7 @@ public class StockDataController {
                                @Value("${stockPrice}") String stockPriceURL,
                                @Value("${companyProfile}") String companyProfileURL,
                                @Value("${previousClose}") String previousCloseURL,
-                               @Value("${companyLogo}") String companyLogoURL, StockService stockService, DailyStockDataService dailyStockDataService) {
+                               @Value("${companyLogo}") String companyLogoURL, StockService stockService, DailyStockDataService dailyStockDataService, StockService stockService1) {
         this.restTemplate = restTemplate;
         this.twelveDataAPIKey = twelveDataAPIKey;
         this.polygonAPIKey = polygonAPIKey;
@@ -58,11 +58,13 @@ public class StockDataController {
         this.previousCloseURL = previousCloseURL;
         this.companyLogoURL = companyLogoURL;
         this.dailyStockDataService = dailyStockDataService;
+        this.stockService = stockService;
     }
 
     private final String[] indexSymbols = {"DJI", "SPX", "IXIC"};
     private final String[] indexNames = {"Dow Jones Industrial Average", "S&P 500", "Nasdaq Composite"};
     private final DailyStockDataService dailyStockDataService;
+    private final StockService stockService;
 
     @GetMapping("/companyProfile")
     public ResponseEntity<String> getCompanyProfile(@RequestParam String symbol) {
@@ -150,6 +152,23 @@ public class StockDataController {
         }
     }
 
+    @Operation(summary = "Deletes a stock")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Stock deleted successfully",
+                    content = @Content(schema = @Schema(implementation = StockEntity.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @DeleteMapping("/deleteStock")
+    public ResponseEntity<String> deleteStock(@RequestBody String stockId) {
+        try {
+            stockService.deleteStockBySymbol(stockId);
+            return new ResponseEntity<>("Successfully deleted stock", HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Failed to delete stock", e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     private String getFormattedPrice(String symbol) {
         log.debug("Fetching and formatting price for index symbol: {}", symbol);
         ResponseEntity<String> response = fetchData(stockPriceURL, symbol, twelveDataAPIKey);
@@ -187,6 +206,9 @@ public class StockDataController {
                 log.warn("Received non-2xx response for symbol: {}. Status: {}", symbol, response.getStatusCode());
             }
             return response;
+        } catch (HttpClientErrorException.NotFound e) {
+            log.error("Ticker not found for symbol: {}. Status code: {}", symbol, e.getStatusCode(), e);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Ticker not found for symbol: " + symbol);
         } catch (HttpClientErrorException e) {
             log.error("Client error while fetching data for symbol: {}. Status code: {}", symbol, e.getStatusCode(), e);
             return ResponseEntity.status(e.getStatusCode()).body("Error retrieving data");

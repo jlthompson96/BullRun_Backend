@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.InputStream;
@@ -33,7 +34,6 @@ public class DailyStockDataService {
         this.stockRepository = stockRepository;
     }
 
-//    @PostConstruct
     @Scheduled(cron = "0 0 0 * * 1-6", zone = "America/New_York")
     public void updateStockPrices() {
         LocalDateTime startTime = LocalDateTime.now();
@@ -42,8 +42,7 @@ public class DailyStockDataService {
         List<StockEntity> stocks = stockRepository.findAll();
         for (StockEntity stock : stocks) {
             try {
-                updateStockPrice(stock);
-                updateStockLogo(stock);
+                updateStockData(stock);
                 stock.setTimestamp(LocalDateTime.now());
                 log.info("Updated price for stock: {} to {}. Current value: {}", stock.getSymbol(), stock.getClosePrice(), stock.getCurrentValue());
             } catch (StockDataException e) {
@@ -58,14 +57,18 @@ public class DailyStockDataService {
     public void updateOneStockPrice(StockEntity stock) {
         log.info("Starting stock price update for stock: {}", stock.getSymbol());
         try {
-            updateStockPrice(stock);
-            updateStockLogo(stock);
+            updateStockData(stock);
             stock.setTimestamp(LocalDateTime.now());
             stockRepository.save(stock);
             log.info("Updated price for stock: {} to {}. Current value: {}", stock.getSymbol(), stock.getClosePrice(), stock.getCurrentValue());
         } catch (StockDataException e) {
             log.error("Error updating price for stock: {}", stock.getSymbol(), e);
         }
+    }
+
+    private void updateStockData(StockEntity stock) throws StockDataException {
+        updateStockPrice(stock);
+        updateStockLogo(stock);
     }
 
     private void updateStockPrice(StockEntity stock) throws StockDataException {
@@ -76,7 +79,6 @@ public class DailyStockDataService {
             JSONObject jsonResponse = new JSONObject(response);
             double price = jsonResponse.getDouble("price");
 
-
             BigDecimal formattedPrice = BigDecimal.valueOf(price).setScale(2, RoundingMode.HALF_UP);
             stock.setClosePrice(formattedPrice.doubleValue());
 
@@ -84,7 +86,7 @@ public class DailyStockDataService {
             stock.setCurrentValue(currentValue.doubleValue());
 
             log.debug("Updated stock price for symbol: {} to {}", stock.getSymbol(), formattedPrice);
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             throw new StockDataException("Failed to update stock price for symbol: " + stock.getSymbol(), e);
         }
     }
@@ -101,7 +103,7 @@ public class DailyStockDataService {
             stock.setLogoImage(logoImage);
 
             log.debug("Updated stock logo for symbol: {}", stock.getSymbol());
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             throw new StockDataException("Failed to update stock logo for symbol: " + stock.getSymbol(), e);
         }
     }
