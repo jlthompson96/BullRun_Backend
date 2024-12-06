@@ -26,14 +26,14 @@ public class StockService {
         return stockRepository.findById(id);
     }
 
-    public void deleteStockBySymbol(String stockId) {
-        Optional<StockEntity> stock = stockRepository.findById(stockId);
+    public void deleteStockBySymbol(String symbol) {
+        Optional<StockEntity> stock = stockRepository.findBySymbol(symbol);
         if (stock.isPresent()) {
             log.info("Deleting stock with symbol: {}", stock.get().getSymbol());
-            stockRepository.deleteById(stockId);
+            stockRepository.deleteBySymbol(symbol);
             log.info("Stock with symbol: {} deleted successfully", stock.get().getSymbol());
         } else {
-            log.warn("Stock with id: {} not found", stockId);
+            log.warn("Stock with id: {} not found", symbol);
         }
     }
 }
