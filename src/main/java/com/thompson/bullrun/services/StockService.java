@@ -22,10 +22,6 @@ public class StockService {
         return stockRepository.findAll();
     }
 
-    public Optional<StockEntity> getStockById(String id) {
-        return stockRepository.findById(id);
-    }
-
     public void deleteStockBySymbol(String symbol) {
         Optional<StockEntity> stock = stockRepository.findBySymbol(symbol);
         if (stock.isPresent()) {
