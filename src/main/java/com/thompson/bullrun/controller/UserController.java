@@ -109,9 +109,9 @@ public class UserController {
     /**
      * Utility method to process a request and handle exceptions consistently.
      *
-     * @param action Supplier that provides the data to be returned in ResponseEntity.
+     * @param action   Supplier that provides the data to be returned in ResponseEntity.
      * @param dataType A descriptive string for the data being fetched, used in logging.
-     * @param <T> Type of data expected in the response.
+     * @param <T>      Type of data expected in the response.
      * @return ResponseEntity containing the data and HTTP status.
      */
     private <T> ResponseEntity<T> processRequest(Supplier<T> action, String dataType) {

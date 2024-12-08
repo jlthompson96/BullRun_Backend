@@ -12,5 +12,5 @@ import org.springframework.data.mongodb.repository.MongoRepository;
  * @version 1.0
  * @since 2024.1.4
  */
-public interface UserRepository extends MongoRepository<UserEntity, String>{
+public interface UserRepository extends MongoRepository<UserEntity, String> {
 }
