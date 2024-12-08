@@ -7,5 +7,6 @@ import java.util.Optional;
 
 public interface StockRepository extends MongoRepository<StockEntity, String> {
     Optional<StockEntity> findBySymbol(String symbol);
+
     void deleteBySymbol(String symbol);
 }
