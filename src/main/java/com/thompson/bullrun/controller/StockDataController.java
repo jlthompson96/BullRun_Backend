@@ -172,6 +172,25 @@ public class StockDataController {
         }
     }
 
+    @Operation(summary = "Updates shares owned for a stock")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Shares owned updated successfully",
+                    content = @Content(schema = @Schema(implementation = StockEntity.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @PutMapping("/updateSharesOwned")
+    public ResponseEntity<String> updateSharesOwned(@RequestBody Map<String, Object> request) {
+        try {
+            String symbol = (String) request.get("symbol");
+            int sharesOwned = (int) request.get("sharesOwned");
+            dailyStockDataService.updateSharesOwned(symbol, sharesOwned);
+            return new ResponseEntity<>("Shares owned updated successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Failed to update shares owned", e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     private String getFormattedPrice(String symbol) {
         log.debug("Fetching and formatting price for index symbol: {}", symbol);
         ResponseEntity<String> response = fetchData(stockPriceURL, symbol, twelveDataAPIKey);
