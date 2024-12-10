@@ -32,4 +32,6 @@ public class StockService {
             log.warn("Stock with id: {} not found", symbol);
         }
     }
+
+
 }

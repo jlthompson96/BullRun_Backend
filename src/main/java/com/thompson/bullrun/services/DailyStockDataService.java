@@ -19,6 +19,7 @@ import java.net.URI;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -64,6 +65,19 @@ public class DailyStockDataService {
             log.info("Updated price for stock: {} to {}. Current value: {}", stock.getSymbol(), stock.getClosePrice(), stock.getCurrentValue());
         } catch (StockDataException e) {
             log.error("Error updating price for stock: {}", stock.getSymbol(), e);
+        }
+    }
+
+    public void updateSharesOwned(String symbol, int sharesOwned) {
+        Optional<StockEntity> stock = stockRepository.findBySymbol(symbol);
+        if (stock.isPresent()) {
+            log.info("Updating shares owned for stock with symbol: {} to {}", stock.get().getSymbol(), sharesOwned);
+            stock.get().setSharesOwned(sharesOwned);
+            updateStockData(stock.get());
+            stockRepository.save(stock.get());
+            log.info("Shares owned for stock with symbol: {} updated successfully", stock.get().getSymbol());
+        } else {
+            log.warn("Stock with symbol: {} not found", symbol);
         }
     }
 
