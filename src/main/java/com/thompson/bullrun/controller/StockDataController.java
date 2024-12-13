@@ -162,9 +162,10 @@ public class StockDataController {
             @ApiResponse(responseCode = "500", description = "Internal server error")
     })
     @DeleteMapping("/deleteStock")
-    public ResponseEntity<String> deleteStock(@RequestBody String stockId) {
+    public ResponseEntity<String> deleteStock(@RequestBody Map<String, Object> request) {
         try {
-            stockService.deleteStockBySymbol(stockId);
+            String stockTicker = (String) request.get("stockTicker");
+            stockService.deleteStockBySymbol(stockTicker);
             return new ResponseEntity<>("Successfully deleted stock", HttpStatus.OK);
         } catch (Exception e) {
             log.error("Failed to delete stock", e);
