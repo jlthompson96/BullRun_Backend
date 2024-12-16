@@ -26,7 +26,6 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -124,16 +123,39 @@ public class StockDataController {
         }
     }
 
+    @GetMapping("/stockExistsInDB")
+    public ResponseEntity<Boolean> stockExistsInDB(@RequestParam Map<String, String> request) {
+        log.info("Checking if stock with symbol: {} exists in database", request.get("symbol"));
+        boolean stockExists = stockService.getStockBySymbol(request.get("symbol"));
+        return new ResponseEntity<>(stockExists, HttpStatus.OK);
+    }
+
     @GetMapping("/indexPrices")
     public Map<String, String> getIndexPrices() {
         log.info("Fetching index prices for major indices");
-        List<String> indexSymbols = Arrays.asList("DJI", "SPX", "IXIC");
-
-        Map<String, String> indexPrices = indexSymbols.stream()
-                .collect(Collectors.toMap(symbol -> symbol, this::getFormattedPrice));
-
+        Map<String, String> indexPrices = Arrays.stream(indexSymbols)
+                .collect(Collectors.toMap(
+                        symbol -> symbol,
+                        symbol -> {
+                            ResponseEntity<String> response = fetchData(stockPriceURL, symbol, twelveDataAPIKey);
+                            log.info("Fetched price for symbol: {}", symbol);
+                            log.info("Response: {}", response);
+                            return getFormattedPrice(symbol, response);
+                        }
+                ));
         log.info("Index prices fetched successfully: {}", indexPrices);
         return indexPrices;
+    }
+
+    private String getFormattedPrice(String symbol, ResponseEntity<String> response) {
+        if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+            String priceStr = new JSONObject(response.getBody()).getString("price");
+            double price = Double.parseDouble(priceStr);
+            return formatPrice(price);
+        } else {
+            log.warn("Failed to fetch price for symbol {}. Status: {}", symbol, response.getStatusCode());
+            return "N/A";
+        }
     }
 
     @Operation(summary = "Adds a new stock")
