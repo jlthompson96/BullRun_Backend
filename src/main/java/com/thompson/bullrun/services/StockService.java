@@ -33,5 +33,16 @@ public class StockService {
         }
     }
 
+    public boolean getStockBySymbol(String symbol) {
+        Optional<StockEntity> stock = stockRepository.findBySymbol(symbol);
+        if (stock.isPresent()) {
+            log.info("Stock with symbol: {} found", stock.get().getSymbol());
+            return true;
+        } else {
+            log.warn("Stock with symbol: {} not found", symbol);
+            return false;
+        }
+    }
+
 
 }
