@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.net.InetAddress;
+
 /**
  * The BullRunApplication class is the entry point of the Spring Boot application.
  * It uses the Lombok library for logging.
@@ -25,15 +27,16 @@ public class BullRunApplication {
             // Start the Spring Boot application
             SpringApplication.run(BullRunApplication.class, args);
 
-            // Log the successful start of the application
+            // Retrieve and log the IP address
+            String ipAddress = InetAddress.getLocalHost().getHostAddress();
             log.info("---------------------------------------");
             log.info("BullRunApplication started successfully");
+            log.info("Running on IP address: {}", ipAddress);
             log.info("---------------------------------------");
         } catch (Exception e) {
             // Log the error message if the application fails to start
             log.error("Error starting BullRunApplication");
             log.error(e.getMessage());
         }
-
     }
 }
