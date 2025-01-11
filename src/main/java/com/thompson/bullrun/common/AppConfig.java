@@ -3,6 +3,10 @@ package com.thompson.bullrun.common;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.client.ClientHttpRequestInterceptor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * AppConfig is a configuration class that provides application-wide beans.
@@ -17,9 +21,10 @@ public class AppConfig {
      */
     @Bean
     public RestTemplate restTemplate() {
-        return new RestTemplate();
+        RestTemplate restTemplate = new RestTemplate();
+        List<ClientHttpRequestInterceptor> interceptors = new ArrayList<>();
+        interceptors.add(new RestLoggerInterceptor());
+        restTemplate.setInterceptors(interceptors);
+        return restTemplate;
     }
-
-
 }
-

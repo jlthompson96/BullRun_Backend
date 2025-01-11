@@ -16,6 +16,21 @@
         </encoder>
     </appender>
 
+    <appender name="REST_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/rest.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/rest-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%level] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.thompson.bullrun.common.RestLoggerInterceptor" level="info" additivity="false">
+        <appender-ref ref="REST_FILE" />
+    </logger>
+
     <root level="info">
         <appender-ref ref="FILE" />
         <appender-ref ref="CONSOLE" />
