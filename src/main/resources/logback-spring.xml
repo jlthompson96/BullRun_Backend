@@ -1,8 +1,8 @@
 <configuration>
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>logs/app.log</file>
+        <file>logs/java.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>logs/app-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>logs/java-%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>30</maxHistory>
         </rollingPolicy>
         <encoder>
@@ -28,11 +28,25 @@
     </appender>
 
     <logger name="com.thompson.bullrun.common.RestLoggerInterceptor" level="info" additivity="false">
-        <appender-ref ref="REST_FILE" />
+        <appender-ref ref="REST_FILE"/>
     </logger>
 
+    <appender name="MONGO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/mongo.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>logs/mongo-%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%level] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.thompson.bullrun.common.MongoCommandListener" level="info" additivity="false">
+        <appender-ref ref="MONGO_FILE"/>
+    </logger>
     <root level="info">
-        <appender-ref ref="FILE" />
-        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE"/>
+        <appender-ref ref="CONSOLE"/>
     </root>
 </configuration>
