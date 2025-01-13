@@ -1,5 +1,7 @@
 package com.thompson.bullrun.common;
 
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.util.StreamUtils;
 
@@ -23,8 +25,8 @@ public class BufferingClientHttpResponseWrapper implements ClientHttpResponse {
     }
 
     @Override
-    public int getRawStatusCode() throws IOException {
-        return response.getRawStatusCode();
+    public HttpStatus getStatusCode() throws IOException {
+        return (HttpStatus) response.getStatusCode();
     }
 
     @Override
@@ -33,17 +35,12 @@ public class BufferingClientHttpResponseWrapper implements ClientHttpResponse {
     }
 
     @Override
+    public HttpHeaders getHeaders() {
+        return response.getHeaders();
+    }
+
+    @Override
     public void close() {
         response.close();
-    }
-
-    @Override
-    public org.springframework.http.HttpStatus getStatusCode() throws IOException {
-        return (org.springframework.http.HttpStatus) response.getStatusCode();
-    }
-
-    @Override
-    public org.springframework.http.HttpHeaders getHeaders() {
-        return response.getHeaders();
     }
 }
