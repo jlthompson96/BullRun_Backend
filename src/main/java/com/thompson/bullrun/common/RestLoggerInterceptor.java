@@ -11,6 +11,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class RestLoggerInterceptor implements ClientHttpRequestInterceptor {
@@ -19,15 +20,17 @@ public class RestLoggerInterceptor implements ClientHttpRequestInterceptor {
 
     @Override
     public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
-        logRequest(request, body);
+        String uniqueId = UUID.randomUUID().toString();
+        logRequest(request, body, uniqueId);
         ClientHttpResponse response = execution.execute(request, body);
         ClientHttpResponse responseWrapper = new BufferingClientHttpResponseWrapper(response);
-        logResponse(responseWrapper);
+        logResponse(responseWrapper, uniqueId);
         return responseWrapper;
     }
 
-    private void logRequest(HttpRequest request, byte[] body) throws IOException {
+    private void logRequest(HttpRequest request, byte[] body, String uniqueId) throws IOException {
         log.info("======================================= Request ========================================");
+        log.info("Unique ID: {}", uniqueId);
         log.info("URI: {}", request.getURI());
         log.info("HTTP Method: {}", request.getMethod());
         log.info("HTTP Headers: {}", request.getHeaders());
@@ -37,12 +40,13 @@ public class RestLoggerInterceptor implements ClientHttpRequestInterceptor {
         log.info("");
     }
 
-    private void logResponse(ClientHttpResponse response) throws IOException {
+    private void logResponse(ClientHttpResponse response, String uniqueId) throws IOException {
         StringBuilder inputStringBuilder = new StringBuilder();
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(response.getBody(), StandardCharsets.UTF_8))) {
             inputStringBuilder.append(bufferedReader.lines().collect(Collectors.joining("\n")));
         }
         log.info("======================================= Response =======================================");
+        log.info("Unique ID: {}", uniqueId);
         log.info("HTTP Status Code: {}", response.getStatusCode());
         log.info("HTTP Status Text: {}", response.getStatusText());
         log.info("Response Body: {}", inputStringBuilder.toString());

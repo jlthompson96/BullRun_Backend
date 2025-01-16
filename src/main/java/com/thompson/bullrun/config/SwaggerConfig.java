@@ -1,4 +1,4 @@
-package com.thompson.bullrun.common;
+package com.thompson.bullrun.config;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springdoc.core.GroupedOpenApi;

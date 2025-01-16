@@ -1,5 +1,6 @@
-package com.thompson.bullrun.common;
+package com.thompson.bullrun.config;
 
+import com.thompson.bullrun.common.RestLoggerInterceptor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
