@@ -1,8 +1,9 @@
-package com.thompson.bullrun.common;
+package com.thompson.bullrun.config;
 
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
+import com.thompson.bullrun.common.MongoCommandListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
