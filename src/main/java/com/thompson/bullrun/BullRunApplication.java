@@ -11,6 +11,10 @@ import java.net.InetAddress;
 /**
  * The BullRunApplication class is the entry point of the Spring Boot application.
  * It uses the Lombok library for logging.
+ * The @OpenAPIDefinition annotation is used to enable OpenAPI documentation.
+ * The @EnableScheduling annotation is used to enable scheduling tasks.
+ * The main method starts the Spring Boot application and logs the start-up status.
+ * It also retrieves and logs the IP address of the running application.
  */
 @Slf4j
 @OpenAPIDefinition
