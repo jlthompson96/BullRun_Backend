@@ -1,5 +1,9 @@
 package com.thompson.bullrun.common;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpRequest;
@@ -17,9 +21,11 @@ import java.util.stream.Collectors;
 public class RestLoggerInterceptor implements ClientHttpRequestInterceptor {
 
     private static final Logger log = LoggerFactory.getLogger(RestLoggerInterceptor.class);
+    private static final String LOG_SEPARATOR = "========================================================================================";
 
+    @NonNull
     @Override
-    public ClientHttpResponse intercept(HttpRequest request, byte[] body, ClientHttpRequestExecution execution) throws IOException {
+    public ClientHttpResponse intercept(@NonNull HttpRequest request, byte @NonNull [] body, @NonNull ClientHttpRequestExecution execution) throws IOException {
         String uniqueId = UUID.randomUUID().toString();
         logRequest(request, body, uniqueId);
         ClientHttpResponse response = execution.execute(request, body);
@@ -35,7 +41,7 @@ public class RestLoggerInterceptor implements ClientHttpRequestInterceptor {
         log.info("HTTP Method: {}", request.getMethod());
         log.info("HTTP Headers: {}", request.getHeaders());
         log.info("Request Body: {}", new String(body, StandardCharsets.UTF_8));
-        log.info("========================================================================================");
+        log.info(LOG_SEPARATOR);
         log.info("");
         log.info("");
     }
@@ -45,13 +51,27 @@ public class RestLoggerInterceptor implements ClientHttpRequestInterceptor {
         try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(response.getBody(), StandardCharsets.UTF_8))) {
             inputStringBuilder.append(bufferedReader.lines().collect(Collectors.joining("\n")));
         }
+        String responseBody = inputStringBuilder.toString();
+        String formattedResponseBody = formatJson(responseBody);
+
         log.info("======================================= Response =======================================");
         log.info("Unique ID: {}", uniqueId);
         log.info("HTTP Status Code: {}", response.getStatusCode());
         log.info("HTTP Status Text: {}", response.getStatusText());
-        log.info("Response Body: {}", inputStringBuilder.toString());
-        log.info("========================================================================================");
+        log.info("Response Body: {}", formattedResponseBody);
+        log.info(LOG_SEPARATOR);
         log.info("");
         log.info("");
+    }
+
+    private String formatJson(String json) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Object jsonObject = mapper.readValue(json, Object.class);
+            ObjectWriter writer = mapper.writer(SerializationFeature.INDENT_OUTPUT);
+            return writer.writeValueAsString(jsonObject);
+        } catch (IOException e) {
+            return json;
+        }
     }
 }
