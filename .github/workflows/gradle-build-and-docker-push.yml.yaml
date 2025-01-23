@@ -3,8 +3,7 @@ name: Build and Push to Docker Hub
 on:
   push:
     branches:
-      - main # Change to your default branch if needed
-      - dev # Change to your develop branch if needed
+      - main
 
 jobs:
   build-and-push:
