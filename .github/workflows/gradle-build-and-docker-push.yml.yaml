@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main # Change to your default branch if needed
-      - develop # Change to your develop branch if needed
+      - dev # Change to your develop branch if needed
 
 jobs:
   build-and-push:
