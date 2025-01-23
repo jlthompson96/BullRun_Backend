@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main # Change to your default branch if needed
+      - develop # Change to your develop branch if needed
 
 jobs:
   build-and-push:
@@ -36,9 +37,9 @@ jobs:
       # Build Docker image
       - name: Build Docker Image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/bullrun-service:latest .
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/bullrun-service: .
 
       # Push Docker image to Docker Hub
       - name: Push Docker Image
         run: |
-          docker push ${{ secrets.DOCKER_USERNAME }}/bullrun-service:latest
+          docker push ${{ secrets.DOCKER_USERNAME }}/bullrun-service
