@@ -39,21 +39,18 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # Inject application.properties secrets (if needed)
+      # Inject secrets into application.properties (Dynamic configuration)
       - name: Inject Secrets into application.properties
         run: |
-          sed -i "s|\${TWELVE_DATA_API_KEY}|${{ secrets.TWELVE_DATA_API_KEY }}|g" src/main/resources/application.properties
-          sed -i "s|\${POLYGON_API_KEY}|${{ secrets.POLYGON_API_KEY }}|g" src/main/resources/application.properties
-          sed -i "s|\${MONGODB_URI}|${{ secrets.MONGODB_URI }}|g" src/main/resources/application.properties
-          sed -i "s|\${MONGODB_DATABASE}|${{ secrets.MONGODB_DATABASE }}|g" src/main/resources/application.properties
+          sed -i "s|twelveDataAPIKey=.*|twelveDataAPIKey=${{ secrets.TWELVE_DATA_API_KEY }}|g" src/main/resources/application.properties
+          sed -i "s|polygonAPIKey=.*|polygonAPIKey=${{ secrets.POLYGON_API_KEY }}|g" src/main/resources/application.properties
+          sed -i "s|spring.data.mongodb.uri=.*|spring.data.mongodb.uri=${{ secrets.MONGODB_URI }}|g" src/main/resources/application.properties
+          sed -i "s|spring.data.mongodb.database=.*|spring.data.mongodb.database=${{ secrets.MONGODB_DATABASE }}|g" src/main/resources/application.properties
 
+      # Build Docker Image
       - name: Build Docker Image
         run: |
           docker build --platform linux/arm64/v8 \
-                       --build-arg TWELVE_DATA_API_KEY=${{ secrets.TWELVE_DATA_API_KEY }} \
-                       --build-arg POLYGON_API_KEY=${{ secrets.POLYGON_API_KEY }} \
-                       --build-arg MONGODB_URI=${{ secrets.MONGODB_URI }} \
-                       --build-arg MONGODB_DATABASE=${{ secrets.MONGODB_DATABASE }} \
                        -t ${{ secrets.DOCKER_USERNAME }}/bullrun-service .
 
       # Push Docker image to Docker Hub
