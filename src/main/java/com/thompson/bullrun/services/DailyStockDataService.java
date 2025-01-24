@@ -2,8 +2,10 @@ package com.thompson.bullrun.services;
 
 import com.thompson.bullrun.config.ApiProperties;
 import com.thompson.bullrun.entities.StockEntity;
+import com.thompson.bullrun.entities.UserEntity;
 import com.thompson.bullrun.exceptions.StockDataException;
 import com.thompson.bullrun.repositories.StockRepository;
+import com.thompson.bullrun.repositories.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -28,11 +30,13 @@ public class DailyStockDataService {
     private final RestTemplate restTemplate;
     private final ApiProperties apiProperties;
     private final StockRepository stockRepository;
+    private final UserRepository userRepository;
 
-    public DailyStockDataService(RestTemplate restTemplate, ApiProperties apiProperties, StockRepository stockRepository) {
+    public DailyStockDataService(RestTemplate restTemplate, ApiProperties apiProperties, StockRepository stockRepository, UserRepository userRepository) {
         this.restTemplate = restTemplate;
         this.apiProperties = apiProperties;
         this.stockRepository = stockRepository;
+        this.userRepository = userRepository;
     }
 
     @PostConstruct
@@ -42,16 +46,19 @@ public class DailyStockDataService {
         log.info("Starting stock price update job at {}", startTime);
 
         List<StockEntity> stocks = stockRepository.findAll();
+        double totalValue = 0.0;
         for (StockEntity stock : stocks) {
             try {
                 updateStockData(stock);
                 stock.setTimestamp(LocalDateTime.now());
+                totalValue += stock.getCurrentValue();
                 log.info("Updated price for stock: {} to {}. Current value: {}", stock.getSymbol(), stock.getClosePrice(), stock.getCurrentValue());
             } catch (StockDataException e) {
                 log.error("Error updating price for stock: {}", stock.getSymbol(), e);
             }
         }
         stockRepository.saveAll(stocks);
+        saveTotalStockValue(totalValue);
         LocalDateTime endTime = LocalDateTime.now();
         log.info("Stock price update job completed successfully for {} stocks at {}. Duration: {} seconds", stocks.size(), endTime, java.time.Duration.between(startTime, endTime).getSeconds());
     }
@@ -165,5 +172,13 @@ public class DailyStockDataService {
         } catch (Exception e) {
             throw new StockDataException("Failed to download image from URL: " + imageUrl, e);
         }
+    }
+
+    private void saveTotalStockValue(double totalValue) {
+        UserEntity totalStockValue = new UserEntity();
+        totalStockValue.setDate(LocalDateTime.now());
+        totalStockValue.setTotalValue(totalValue);
+        userRepository.save(totalStockValue);
+        log.info("Saved total stock value: {} at {}", totalValue, totalStockValue.getDate());
     }
 }

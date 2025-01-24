@@ -13,6 +13,6 @@ EXPOSE 8080
 # Command to run the jar file
 ENTRYPOINT ["java", "-jar", "app.jar"]
 
-# Optional: Add a health check to monitor the application
+# Health check to monitor the application
 HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
   CMD curl -f http://localhost:8080/actuator/health || exit 1

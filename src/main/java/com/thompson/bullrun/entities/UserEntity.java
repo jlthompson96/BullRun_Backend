@@ -4,6 +4,7 @@ import lombok.*;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 /**
@@ -38,4 +39,12 @@ public class UserEntity {
      * A list of stocks owned by the user. Each stock is represented by a string.
      */
     private ArrayList<String> stocksOwned;
+
+    @Setter
+    @Getter
+    private LocalDateTime date;
+    @Setter
+    @Getter
+    private double totalValue;
+
 }
