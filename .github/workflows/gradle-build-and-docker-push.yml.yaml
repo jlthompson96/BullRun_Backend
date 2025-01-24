@@ -24,6 +24,11 @@ jobs:
 
       # Build the app with Gradle
       - name: Build with Gradle
+        env:
+          TWELVE_DATA_API_KEY: ${{ secrets.TWELVE_DATA_API_KEY }}
+          POLYGON_API_KEY: ${{ secrets.POLYGON_API_KEY }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DATABASE: ${{ secrets.MONGODB_DATABASE }}
         run: ./gradlew build
 
       # Log in to Docker Hub
@@ -33,10 +38,19 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # Inject application.properties secrets (if needed)
+      - name: Inject Secrets into application.properties
+        run: |
+          sed -i "s|\${TWELVE_DATA_API_KEY}|${{ secrets.TWELVE_DATA_API_KEY }}|g" src/main/resources/application.properties
+          sed -i "s|\${POLYGON_API_KEY}|${{ secrets.POLYGON_API_KEY }}|g" src/main/resources/application.properties
+          sed -i "s|\${MONGODB_URI}|${{ secrets.MONGODB_URI }}|g" src/main/resources/application.properties
+          sed -i "s|\${MONGODB_DATABASE}|${{ secrets.MONGODB_DATABASE }}|g" src/main/resources/application.properties
+
       # Build Docker image
       - name: Build Docker Image
         run: |
-          docker build --platform linux/arm64/v8 -t ${{ secrets.DOCKER_USERNAME }}/bullrun-service .
+          docker build --platform linux/arm64/v8 \
+                       -t ${{ secrets.DOCKER_USERNAME }}/bullrun-service .
 
       # Push Docker image to Docker Hub
       - name: Push Docker Image
