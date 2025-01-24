@@ -15,18 +15,19 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @Configuration
 public class SecurityConfig {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable) // Disable CSRF
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Apply CORS configuration
-                .authorizeHttpRequests(auth -> auth
-                        .anyRequest().authenticated() // Require authentication for all requests
-                )
-                .httpBasic(httpBasic -> httpBasic.realmName("MyApp")); // Enable Basic Auth with custom realm
+@Bean
+public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    http
+            .csrf(AbstractHttpConfigurer::disable) // Disable CSRF
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Apply CORS configuration
+            .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/actuator/**").permitAll() // Allow access to actuator endpoints
+                    .anyRequest().authenticated() // Require authentication for all other requests
+            )
+            .httpBasic(httpBasic -> httpBasic.realmName("MyApp")); // Enable Basic Auth with custom realm
 
-        return http.build();
-    }
+    return http.build();
+}
 
     @Bean
     public UserDetailsService userDetailsService() {
