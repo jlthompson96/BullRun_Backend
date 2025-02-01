@@ -1,11 +1,13 @@
 package com.thompson.bullrun.services;
 
+import com.thompson.bullrun.entities.PortfolioValue;
 import com.thompson.bullrun.entities.UserEntity;
 import com.thompson.bullrun.repositories.UserRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -88,6 +90,24 @@ public class UserService {
         } catch (Exception e) {
             log.error("Failed to create user with username: {}", userEntity, e);
             return null;
+        }
+    }
+
+    public List<PortfolioValue> pullPortfolioValueOverTime() {
+        log.info("Pulling portfolio value over time");
+        try {
+            List<PortfolioValue> portfolioValues = new ArrayList<>();
+            List<UserEntity> users = userRepository.findAll();
+            for (UserEntity user : users) {
+                String date = String.valueOf(user.getDate());
+                Double totalValue = user.getTotalValue();
+                portfolioValues.add(new PortfolioValue(date, totalValue));
+            }
+            log.info("Successfully pulled portfolio value over time");
+            return portfolioValues;
+        } catch (Exception e) {
+            log.error("Failed to pull portfolio value over time", e);
+            return Collections.emptyList();
         }
     }
 }
