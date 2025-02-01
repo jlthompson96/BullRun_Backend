@@ -40,11 +40,14 @@ public class UserEntity {
      */
     private ArrayList<String> stocksOwned;
 
-    @Setter
-    @Getter
+    /**
+     * The date the Portfolio value was last updated.
+     */
     private LocalDateTime date;
-    @Setter
-    @Getter
+
+    /**
+     * The total value of all stocks owned by the user.
+     */
     private double totalValue;
 
 }

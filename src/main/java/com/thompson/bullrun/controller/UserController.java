@@ -1,5 +1,6 @@
 package com.thompson.bullrun.controller;
 
+import com.thompson.bullrun.entities.PortfolioValue;
 import com.thompson.bullrun.entities.StockEntity;
 import com.thompson.bullrun.entities.UserEntity;
 import com.thompson.bullrun.services.StockService;
@@ -106,6 +107,18 @@ public class UserController {
         return processRequest(stockService::getAllStocks, "stocks list");
     }
 
+    @Operation(summary = "Fetches the total value of the user's portfolio over time")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Portfolio value fetched successfully",
+                    content = @Content(schema = @Schema(implementation = UserEntity.class))),
+            @ApiResponse(responseCode = "500", description = "Internal server error")
+    })
+    @GetMapping("/getPortfolioValueOverTime")
+    public ResponseEntity<List<PortfolioValue>> getPortfolioValueOverTime() {
+        log.info("Fetching the total value of the user's portfolio over time");
+        return processRequest(userService::pullPortfolioValueOverTime, "portfolio value over time");
+    }
+
     /**
      * Utility method to process a request and handle exceptions consistently.
      *
@@ -124,4 +137,6 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
 }
