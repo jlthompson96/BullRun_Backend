@@ -93,13 +93,38 @@ public class DailyStockDataService {
         updateStockLogo(stock);
     }
 
+    private void updateStockLogo(StockEntity stock) {
+        log.debug("Updating stock logo for symbol: {}", stock.getSymbol());
+        try {
+            String apiUrl = apiProperties.getCompanyProfileURL().replace("{symbol}", stock.getSymbol()).replace("{apiKey}", apiProperties.getPolygonAPIKey());
+            String response = restTemplate.getForObject(apiUrl, String.class);
+            JSONObject jsonResponse = new JSONObject(response);
+            JSONObject results = jsonResponse.getJSONObject("results");
+
+            if (results.has("branding")) {
+                JSONObject branding = results.getJSONObject("branding");
+                String logoUrl = branding.getString("icon_url") + "?apiKey=" + apiProperties.getPolygonAPIKey();
+                byte[] logoImage = downloadImage(logoUrl);
+                stock.setLogoImage(logoImage);
+                log.debug("Updated stock logo for symbol: {}", stock.getSymbol());
+            } else {
+                setDefaultLogo(stock);
+                log.debug("Branding field not found. Set default logo for symbol: {}", stock.getSymbol());
+            }
+        } catch (RestClientException | StockDataException e) {
+            log.error("Failed to update stock logo for symbol: {}", stock.getSymbol(), e);
+            setDefaultLogo(stock);
+        }
+    }
+
     private void updateStockPrice(StockEntity stock) throws StockDataException {
         log.debug("Updating stock price for symbol: {}", stock.getSymbol());
         try {
-            String apiUrl = apiProperties.getStockPriceURL().replace("{symbol}", stock.getSymbol()).replace("{apiKey}", apiProperties.getTwelveDataAPIKey());
+            String apiUrl = apiProperties.getStockPriceURL().replace("{symbol}", stock.getSymbol()).replace("{apiKey}", apiProperties.getPolygonAPIKey());
             String response = restTemplate.getForObject(apiUrl, String.class);
             JSONObject jsonResponse = new JSONObject(response);
-            double price = jsonResponse.getDouble("price");
+            JSONObject results = jsonResponse.getJSONObject("results");
+            double price = results.getDouble("p");
 
             BigDecimal formattedPrice = BigDecimal.valueOf(price).setScale(2, RoundingMode.HALF_UP);
             stock.setClosePrice(formattedPrice.doubleValue());
@@ -110,37 +135,6 @@ public class DailyStockDataService {
             log.debug("Updated stock price for symbol: {} to {}", stock.getSymbol(), formattedPrice);
         } catch (RestClientException e) {
             throw new StockDataException("Failed to update stock price for symbol: " + stock.getSymbol(), e);
-        }
-    }
-
-    private void updateStockLogo(StockEntity stock) throws StockDataException {
-        log.debug("Updating stock logo for symbol: {}", stock.getSymbol());
-        try {
-            String getLogo = apiProperties.getCompanyLogoURL().replace("{symbol}", stock.getSymbol()).replace("{apiKey}", apiProperties.getTwelveDataAPIKey());
-            String logoResponse = restTemplate.getForObject(getLogo, String.class);
-
-            if (logoResponse == null || logoResponse.trim().isEmpty()) {
-                log.warn("API returned empty response for symbol: {}. Using default image.", stock.getSymbol());
-                setDefaultLogo(stock);
-                return;
-            }
-
-            JSONObject logoJsonResponse = new JSONObject(logoResponse);
-            String logoUrl = logoJsonResponse.optString("url", "");
-
-            if (logoUrl.trim().isEmpty()) {
-                log.warn("API returned empty URL for symbol: {}. Using default image.", stock.getSymbol());
-                setDefaultLogo(stock);
-                return;
-            }
-
-            byte[] logoImage = downloadImage(logoUrl);
-            stock.setLogoImage(logoImage);
-
-            log.debug("Updated stock logo for symbol: {}", stock.getSymbol());
-        } catch (RestClientException e) {
-            log.error("Failed to update stock logo for symbol: {}. Using default image.", stock.getSymbol(), e);
-            setDefaultLogo(stock);
         }
     }
 

@@ -11,8 +11,6 @@ import org.springframework.context.annotation.Configuration;
 @Getter
 @Setter
 public class ApiProperties {
-    @Value("${twelveDataAPIKey}")
-    private String twelveDataAPIKey;
     @Value("${polygonAPIKey}")
     private String polygonAPIKey;
     @Value("${stockPrice}")
@@ -21,6 +19,4 @@ public class ApiProperties {
     private String companyProfileURL;
     @Value("${previousClose}")
     private String previousCloseURL;
-    @Value("${companyLogo}")
-    private String companyLogoURL;
 }

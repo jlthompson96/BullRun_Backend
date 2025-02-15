@@ -37,28 +37,23 @@ import java.util.stream.Collectors;
 public class StockDataController {
 
     private final RestTemplate restTemplate;
-    private final String twelveDataAPIKey;
     private final String polygonAPIKey;
     private final String stockPriceURL;
     private final String companyProfileURL;
     private final String previousCloseURL;
-    private final String companyLogoURL;
 
     @Autowired
     public StockDataController(RestTemplate restTemplate,
-                               @Value("${twelveDataAPIKey}") String twelveDataAPIKey,
                                @Value("${polygonAPIKey}") String polygonAPIKey,
                                @Value("${stockPrice}") String stockPriceURL,
                                @Value("${companyProfile}") String companyProfileURL,
                                @Value("${previousClose}") String previousCloseURL,
-                               @Value("${companyLogo}") String companyLogoURL, StockService stockService, DailyStockDataService dailyStockDataService, StockService stockService1) {
+                                StockService stockService, DailyStockDataService dailyStockDataService, StockService stockService1) {
         this.restTemplate = restTemplate;
-        this.twelveDataAPIKey = twelveDataAPIKey;
         this.polygonAPIKey = polygonAPIKey;
         this.stockPriceURL = stockPriceURL;
         this.companyProfileURL = companyProfileURL;
         this.previousCloseURL = previousCloseURL;
-        this.companyLogoURL = companyLogoURL;
         this.dailyStockDataService = dailyStockDataService;
         this.stockService = stockService;
     }
@@ -79,23 +74,15 @@ public class StockDataController {
     @GetMapping("/stockPrice")
     public ResponseEntity<String> getStockPrice(@RequestParam String symbol) {
         log.info("Fetching stock price for symbol: {}", symbol);
-        ResponseEntity<String> response = fetchData(stockPriceURL, symbol, twelveDataAPIKey);
+        ResponseEntity<String> response = fetchData(stockPriceURL, symbol, polygonAPIKey);
         logResponseStatus("Stock Price", symbol, response);
-        return response;
-    }
-
-    @GetMapping("/companyLogo")
-    public ResponseEntity<String> getCompanyLogo(@RequestParam String symbol) {
-        log.info("Fetching company logo for symbol: {}", symbol);
-        ResponseEntity<String> response = fetchData(companyLogoURL, symbol, twelveDataAPIKey);
-        logResponseStatus("Company Logo", symbol, response);
         return response;
     }
 
     @GetMapping("/previousClose")
     public ResponseEntity<String> getPreviousClose(@RequestParam String symbol) {
         log.info("Fetching previous close for symbol: {}", symbol);
-        ResponseEntity<String> response = fetchData(previousCloseURL, symbol, twelveDataAPIKey);
+        ResponseEntity<String> response = fetchData(previousCloseURL, symbol, polygonAPIKey);
         logResponseStatus("Previous Close", symbol, response);
         return response;
     }
@@ -137,7 +124,7 @@ public class StockDataController {
                 .collect(Collectors.toMap(
                         symbol -> symbol,
                         symbol -> {
-                            ResponseEntity<String> response = fetchData(stockPriceURL, symbol, twelveDataAPIKey);
+                            ResponseEntity<String> response = fetchData(stockPriceURL, symbol, polygonAPIKey);
                             log.info("Fetched price for symbol: {}", symbol);
                             log.info("Response: {}", response);
                             return getFormattedPrice(symbol, response);
@@ -216,7 +203,7 @@ public class StockDataController {
 
     private String getFormattedPrice(String symbol) {
         log.debug("Fetching and formatting price for index symbol: {}", symbol);
-        ResponseEntity<String> response = fetchData(stockPriceURL, symbol, twelveDataAPIKey);
+        ResponseEntity<String> response = fetchData(stockPriceURL, symbol, polygonAPIKey);
 
         if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
             String priceStr = new JSONObject(response.getBody()).getString("price");
