@@ -1,271 +1,174 @@
+<p align="center">
+  <img src="docs/assets/banner.svg" alt="BullRun Backend — the Spring Boot API behind BullRun" width="100%">
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-21-6db33f?style=for-the-badge&logo=openjdk&logoColor=white&labelColor=0d1410" alt="Java 21">
+  <img src="https://img.shields.io/badge/Spring_Boot-3.4-6db33f?style=for-the-badge&logo=springboot&logoColor=white&labelColor=0d1410" alt="Spring Boot 3.4">
+  <img src="https://img.shields.io/badge/Gradle-build-6db33f?style=for-the-badge&logo=gradle&logoColor=white&labelColor=0d1410" alt="Gradle">
+  <img src="https://img.shields.io/badge/MongoDB-data-47a248?style=for-the-badge&logo=mongodb&logoColor=white&labelColor=0d1410" alt="MongoDB">
+  <img src="https://img.shields.io/badge/Docker-ready-47a248?style=for-the-badge&logo=docker&logoColor=white&labelColor=0d1410" alt="Docker">
+  <img src="https://img.shields.io/badge/license-MIT-47a248?style=for-the-badge&labelColor=0d1410" alt="MIT license">
+</p>
+
 # BullRun Backend
-<img src = "https://github.com/jlthompson96/BullRun_Frontend/blob/main/src/assets/Designer.png" height= "200px" alt = "BullRun Logo">
-A Spring application to manage financial portfolios and provide financial literacy to users.
 
-## Goals
-- [ ] Individual Stock Analysis
-- [ ] Learning Center to help users gain financial literacy
-- [ ] Track portfolio performance over time
-- [ ] Keep up with the latest news in the market
-- [ ] Dashboard to track all of the above
+The Spring Boot API behind [BullRun](https://github.com/jlthompson96/BullRun_Frontend), an app for managing a stock portfolio and building financial literacy. It wraps the market data providers behind one API, turns news feeds into JSON, stores the portfolio in MongoDB, and reprices every holding on a schedule.
 
-## Technologies
-- Java 21 <img align="left" alt="Java" width="26px" src="https://github.com/jlthompson96/vscode-material-icon-theme/blob/master/icons/java.svg" />
-- Spring Boot <img align="left" alt="JavaScipt" width="26px" src="https://github.com/jlthompson96/vscode-material-icon-theme/blob/master/icons/mint.svg" />
-- Gradle <img align="left" alt="JavaScipt" width="26px" src="https://github.com/jlthompson96/vscode-material-icon-theme/blob/master/icons/gradle.svg" />
-- MongoDB <img align="left" alt="JavaScipt" width="26px" src="https://github.com/jlthompson96/vscode-material-icon-theme/blob/master/icons/mint.svg" />
-- TwelveData API <img align="left" alt="JavaScipt" width="26px" src="https://avatars.githubusercontent.com/u/59389925?s=200&v=4" />
+## What it does
 
+<p align="center">
+  <img src="docs/assets/capabilities.svg" alt="BullRun Backend capabilities: market data, index prices, stock news, portfolio, users and a nightly repricing job" width="100%">
+</p>
 
-# Controller Endpoints Documentation
+- **Market data.** Latest price, previous close and company logo from [TwelveData](https://twelvedata.com/), and the company profile from [Polygon](https://polygon.io/).
+- **Index prices.** The Dow Jones Industrial Average (`DJI`), S&P 500 (`SPX`) and Nasdaq Composite (`IXIC`) in one call, formatted for display.
+- **Stock news.** Pulls a ticker's Yahoo Finance RSS feed and converts the XML to a JSON array of articles.
+- **Portfolio.** Add a holding (its price and logo are fetched on the way in), update the shares you own, delete a holding, or check whether a symbol is already in the portfolio.
+- **Portfolio history.** A scheduled job reprices every holding and saves a snapshot of the total portfolio value, which `/users/getPortfolioValueOverTime` returns as a time series.
+- **Users.** List, look up and create user records.
 
-## Table of Contents
+## How it works
 
-- [StockDataController](#stockdatacontroller)
-    - [GET `/companyProfile`](#get-companyprofile)
-    - [GET `/stockPrice`](#get-stockprice)
-    - [GET `/companyLogo`](#get-companylogo)
-    - [GET `/previousClose`](#get-previousclose)
-    - [GET `/stockNews`](#get-stocknews)
-    - [GET `/stockExistsInDB`](#get-stockexistsindb)
-    - [POST `/addStock`](#post-addstock)
-    - [DELETE `/deleteStock`](#delete-deletestock)
-    - [PUT `/updateSharesOwned`](#put-updatesharesowned)
-- [UserController](#usercontroller)
-    - [GET `/getUserList`](#get-getuserlist)
-    - [POST `/getUser`](#post-getuser)
-    - [POST `/createUser`](#post-createuser)
-    - [GET `/getUserStocks`](#get-getuserstocks)
+```mermaid
+flowchart LR
+    FE["📈 BullRun Frontend"] -- "HTTP Basic<br/>/stockData/* · /users/*" --> API
+    subgraph API["🐂 BullRun Backend (Spring Boot)"]
+        SC["StockDataController"]
+        UC["UserController"]
+        JOB["DailyStockDataService<br/>⏰ scheduled"]
+    end
+    SC --> TD["TwelveData<br/>price · EOD · logo"]
+    SC --> PG["Polygon<br/>ticker reference"]
+    SC --> YF["Yahoo Finance RSS"]
+    JOB --> TD
+    SC <--> DB[("MongoDB<br/>Stock · Users")]
+    UC <--> DB
+    JOB <--> DB
+```
 
----
+The repricing job runs once at startup and then at midnight, Monday to Saturday, New York time:
 
-## StockDataController
+```mermaid
+sequenceDiagram
+    participant J as DailyStockDataService
+    participant M as MongoDB
+    participant T as TwelveData
+    Note over J: @PostConstruct and cron 0 0 0 * * 1-6 (America/New_York)
+    J->>M: Load every holding (Stock)
+    loop each holding
+        J->>T: Latest price and logo for symbol
+        T-->>J: price, logo
+        J->>J: currentValue = price × sharesOwned
+    end
+    J->>M: Save updated holdings
+    J->>M: Save total portfolio value snapshot
+```
 
-This controller handles all operations related to stock data, such as fetching company profiles, stock prices, and managing stock records.
+## API
 
-### Endpoints
+All endpoints except `/actuator/**` require HTTP Basic authentication. The user is an in-memory test account defined in [SecurityConfig.java](src/main/java/com/thompson/bullrun/config/SecurityConfig.java); replace it before exposing the API publicly. CORS is open to all origins.
 
-- **GET `/companyProfile`**
-    - Method: `getCompanyProfile`
-    - Description: Retrieves the profile information of a company.
-    - Request: No parameters required.
-    - Response:
-      ```json
-      {
-        "name": "Company Name",
-        "industry": "Industry",
-        "description": "Description"
-      }
-      ```
-    - Errors:
-        - `404 Not Found`: If the company profile is not available.
+### `/stockData`
 
-- **GET `/stockPrice`**
-    - Method: `getStockPrice`
-    - Description: Fetches the current stock price of a company.
-    - Request:
-      ```json
-      {
-        "symbol": "AAPL"
-      }
-      ```
-    - Response:
-      ```json
-      {
-        "symbol": "AAPL",
-        "price": 150.25
-      }
-      ```
-    - Errors:
-        - `400 Bad Request`: If the symbol is missing or invalid.
+| Method | Path | Input | Returns |
+| --- | --- | --- | --- |
+| `GET` | `/stockData/stockPrice` | `?symbol=AAPL` | TwelveData price |
+| `GET` | `/stockData/previousClose` | `?symbol=AAPL` | TwelveData end-of-day quote |
+| `GET` | `/stockData/companyLogo` | `?symbol=AAPL` | TwelveData logo URL |
+| `GET` | `/stockData/companyProfile` | `?symbol=AAPL` | Polygon ticker details |
+| `GET` | `/stockData/indexPrices` | — | `{ "DJI": "…", "SPX": "…", "IXIC": "…" }` |
+| `GET` | `/stockData/stockNews` | `?symbol=AAPL` | JSON array of RSS items |
+| `GET` | `/stockData/stockExistsInDB` | `?symbol=AAPL` | `true` / `false` |
+| `POST` | `/stockData/addStock` | `{ "symbol", "name", "sharesOwned", "costBasis" }` | The saved stock, priced |
+| `PUT` | `/stockData/updateSharesOwned` | `{ "symbol", "sharesOwned" }` | Confirmation message |
+| `DELETE` | `/stockData/deleteStock` | `{ "stockTicker" }` | Confirmation message |
 
-- **GET `/companyLogo`**
-    - Method: `getCompanyLogo`
-    - Description: Retrieves the logo of a company.
-    - Request:
-      ```json
-      {
-        "symbol": "AAPL"
-      }
-      ```
-    - Response:
-      ```json
-      {
-        "logoUrl": "https://example.com/logo.png"
-      }
-      ```
-    - Errors:
-        - `404 Not Found`: If the logo is not available.
+### `/users`
 
-- **GET `/previousClose`**
-    - Method: `getPreviousClose`
-    - Description: Retrieves the previous closing price of a stock.
-    - Request:
-      ```json
-      {
-        "symbol": "AAPL"
-      }
-      ```
-    - Response:
-      ```json
-      {
-        "symbol": "AAPL",
-        "previousClose": 149.50
-      }
-      ```
+| Method | Path | Input | Returns |
+| --- | --- | --- | --- |
+| `GET` | `/users/getUserList` | — | All user records |
+| `POST` | `/users/getUser` | User JSON | The matching user |
+| `POST` | `/users/createUser` | `{ "firstName", "lastName", … }` | The created user |
+| `GET` | `/users/getUserStocks` | — | Every holding in the portfolio |
+| `GET` | `/users/getPortfolioValueOverTime` | — | `[{ "date", "totalValue" }, …]` |
 
-- **GET `/stockNews`**
-    - Method: `getRSSFeed`
-    - Description: Fetches the latest stock-related news.
-    - Response: Returns an array of news articles.
+There is also a plain `GET /health` check.
 
-- **GET `/stockExistsInDB`**
-    - Method: `stockExistsInDB`
-    - Description: Checks if a stock exists in the database.
-    - Request:
-      ```json
-      {
-        "symbol": "AAPL"
-      }
-      ```
-    - Response:
-      ```json
-      {
-        "exists": true
-      }
-      ```
+### Example
 
-- **POST `/addStock`**
-    - Method: `addStock`
-    - Description: Adds a new stock to the database.
-    - Request:
-      ```json
-      {
-        "symbol": "AAPL",
-        "shares": 10
-      }
-      ```
-    - Response:
-      ```json
-      {
-        "message": "Stock added successfully."
-      }
-      ```
+```bash
+curl -u <user>:<password> "http://localhost:8080/stockData/stockPrice?symbol=AAPL"
 
-- **DELETE `/deleteStock`**
-    - Method: `deleteStock`
-    - Description: Deletes a stock from the database.
-    - Request:
-      ```json
-      {
-        "symbol": "AAPL"
-      }
-      ```
-    - Response:
-      ```json
-      {
-        "message": "Stock deleted successfully."
-      }
-      ```
+curl -u <user>:<password> -X POST http://localhost:8080/stockData/addStock \
+  -H "Content-Type: application/json" \
+  -d '{"symbol":"AAPL","name":"Apple Inc.","sharesOwned":10,"costBasis":150.25}'
+```
 
-- **PUT `/updateSharesOwned`**
-    - Method: `updateSharesOwned`
-    - Description: Updates the number of shares owned for a stock.
-    - Request:
-      ```json
-      {
-        "symbol": "AAPL",
-        "shares": 20
-      }
-      ```
-    - Response:
-      ```json
-      {
-        "message": "Shares updated successfully."
-      }
-      ```
+## Configuration
 
----
+Secrets come from environment variables, referenced in [application.properties](src/main/resources/application.properties):
 
-## UserController
+| Variable | Used for |
+| --- | --- |
+| `TWELVE_DATA_API_KEY` | Price, previous close, logo and index prices |
+| `POLYGON_API_KEY` | Company profile |
+| `MONGODB_URI` | MongoDB connection string |
+| `MONGODB_DATABASE` | Database name |
 
-This controller manages user-related operations such as fetching user details and managing user accounts.
+The `prod` profile is active by default; `application-local.properties` is available for local overrides.
 
-### Endpoints
+## Getting started
 
-- **GET `/getUserList`**
-    - Method: `getUserList`
-    - Description: Retrieves a list of all users.
-    - Response:
-      ```json
-      [
-        {
-          "id": 1,
-          "name": "John Doe"
-        },
-        {
-          "id": 2,
-          "name": "Jane Smith"
-        }
-      ]
-      ```
+### Prerequisites
 
-- **POST `/getUser`**
-    - Method: `getUser`
-    - Description: Retrieves the details of a specific user.
-    - Request:
-      ```json
-      {
-        "userId": 1
-      }
-      ```
-    - Response:
-      ```json
-      {
-        "id": 1,
-        "name": "John Doe",
-        "email": "john.doe@example.com"
-      }
-      ```
+- Java 21
+- A MongoDB database
+- TwelveData and Polygon API keys
 
-- **POST `/createUser`**
-    - Method: `createUser`
-    - Description: Creates a new user account.
-    - Request:
-      ```json
-      {
-        "name": "John Doe",
-        "email": "john.doe@example.com"
-      }
-      ```
-    - Response:
-      ```json
-      {
-        "message": "User created successfully.",
-        "userId": 1
-      }
-      ```
+### Run locally
 
-- **GET `/getUserStocks`**
-    - Method: `getUserStocks`
-    - Description: Retrieves the stocks owned by a specific user.
-    - Request:
-      ```json
-      {
-        "userId": 1
-      }
-      ```
-    - Response:
-      ```json
-      [
-        {
-          "symbol": "AAPL",
-          "shares": 10
-        },
-        {
-          "symbol": "GOOG",
-          "shares": 5
-        }
-      ]
-      ```
+```bash
+export TWELVE_DATA_API_KEY=...
+export POLYGON_API_KEY=...
+export MONGODB_URI=mongodb://localhost:27017
+export MONGODB_DATABASE=bullrun
 
+./gradlew bootRun
+```
+
+The API listens on http://localhost:8080.
+
+### Run with Docker
+
+The [Dockerfile](Dockerfile) packages the built jar on an ARM-compatible Azul Zulu JDK 21 image:
+
+```bash
+./gradlew bootJar
+docker build -t bullrun-backend .
+docker run -p 8080:8080 \
+  -e TWELVE_DATA_API_KEY -e POLYGON_API_KEY -e MONGODB_URI -e MONGODB_DATABASE \
+  bullrun-backend
+```
+
+## Project structure
+
+```
+src/main/java/com/thompson/bullrun/
+├── BullRunApplication.java   # Entry point, enables scheduling
+├── controller/               # StockDataController, UserController
+├── services/                 # StockService, UserService, DailyStockDataService (scheduled repricing)
+├── repositories/             # Spring Data MongoDB repositories
+├── entities/                 # StockEntity, UserEntity, PortfolioValue
+├── config/                   # Security (Basic auth, CORS), Mongo, RestTemplate, API properties
+├── common/                   # Health check, REST and Mongo logging
+└── exceptions/               # StockDataException
+src/main/resources/
+├── application*.properties   # Profiles and provider URLs
+└── asciiBoot.txt             # The startup banner
+```
+
+## License
+
+[MIT](LICENSE) © 2023 Joey Thompson

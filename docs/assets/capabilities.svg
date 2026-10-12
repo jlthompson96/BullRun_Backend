@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 314" width="1000" height="314" role="img" aria-label="BullRun Backend capabilities: market data, index prices, stock news, portfolio, users and a nightly repricing job">
+  <style>
+    .bar { animation: glow 2.6s ease-in-out infinite; }
+    @keyframes glow { 0%,100% { opacity: 1 } 50% { opacity: .45 } }
+    .card { animation: lift 6s ease-in-out infinite; }
+    @keyframes lift { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-3px) } }
+    @media (prefers-reduced-motion: reduce) { .bar, .card { animation: none } }
+  </style>
+  <defs>
+    <radialGradient id="n0" cx="0.9" cy="0.1" r="0.8"><stop offset="0" stop-color="#6db33f" stop-opacity="0.25"/><stop offset="1" stop-color="#6db33f" stop-opacity="0"/></radialGradient>
+    <radialGradient id="n1" cx="0.9" cy="0.1" r="0.8"><stop offset="0" stop-color="#8bc34a" stop-opacity="0.25"/><stop offset="1" stop-color="#8bc34a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="n2" cx="0.9" cy="0.1" r="0.8"><stop offset="0" stop-color="#ffb74d" stop-opacity="0.25"/><stop offset="1" stop-color="#ffb74d" stop-opacity="0"/></radialGradient>
+    <radialGradient id="n3" cx="0.9" cy="0.1" r="0.8"><stop offset="0" stop-color="#4db6ac" stop-opacity="0.25"/><stop offset="1" stop-color="#4db6ac" stop-opacity="0"/></radialGradient>
+    <radialGradient id="n4" cx="0.9" cy="0.1" r="0.8"><stop offset="0" stop-color="#64b5f6" stop-opacity="0.25"/><stop offset="1" stop-color="#64b5f6" stop-opacity="0"/></radialGradient>
+    <radialGradient id="n5" cx="0.9" cy="0.1" r="0.8"><stop offset="0" stop-color="#47a248" stop-opacity="0.25"/><stop offset="1" stop-color="#47a248" stop-opacity="0"/></radialGradient>
+  </defs>
+  <g class="card" style="animation-delay:-0.00s">
+    <rect x="10.0" y="10" width="317.3" height="140" rx="10" fill="#0d1611" stroke="#6db33f" stroke-opacity="0.55"/>
+    <rect x="10.0" y="10" width="317.3" height="140" rx="10" fill="url(#n0)"/>
+    <g transform="translate(28.0,26)"><path d="M0 30 L10 18 L18 24 L30 8 L38 12" fill="none" stroke="#6db33f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M30 8h8v8" fill="none" stroke="#6db33f" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <text x="28.0" y="88" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="15" font-weight="700" letter-spacing="1.5" fill="#6db33f">MARKET DATA</text>
+    <text x="28.0" y="110" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9fb8a6">Price, previous close,</text>
+    <text x="28.0" y="128" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9fb8a6">logo, company profile</text>
+    <rect class="bar" x="26.0" y="140" width="285.3" height="3" rx="1.5" fill="#6db33f" style="animation-delay:-0.0s"/>
+  </g>
+  <g class="card" style="animation-delay:-0.45s">
+    <rect x="341.3" y="10" width="317.3" height="140" rx="10" fill="#0d1611" stroke="#8bc34a" stroke-opacity="0.55"/>
+    <rect x="341.3" y="10" width="317.3" height="140" rx="10" fill="url(#n1)"/>
+    <g transform="translate(359.3,26)"><rect x="0" y="18" width="8" height="14" rx="2" fill="none" stroke="#8bc34a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="14" y="8" width="8" height="24" rx="2" fill="none" stroke="#8bc34a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><rect x="28" y="0" width="8" height="32" rx="2" fill="none" stroke="#8bc34a" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <text x="359.3" y="88" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="15" font-weight="700" letter-spacing="1.5" fill="#8bc34a">INDEX PRICES</text>
+    <text x="359.3" y="110" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9fb8a6">Dow Jones, S&amp;P 500</text>
+    <text x="359.3" y="128" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9fb8a6">and Nasdaq Composite</text>
+    <rect class="bar" x="357.3" y="140" width="285.3" height="3" rx="1.5" fill="#8bc34a" style="animation-delay:-0.4s"/>
+  </g>
+  <g class="card" style="animation-delay:-0.90s">
+    <rect x="672.7" y="10" width="317.3" height="140" rx="10" fill="#0d1611" stroke="#ffb74d" stroke-opacity="0.55"/>
+    <rect x="672.7" y="10" width="317.3" height="140" rx="10" fill="url(#n2)"/>
+    <g transform="translate(690.7,26)"><path d="M4 4a28 28 0 0 1 28 28" fill="none" stroke="#ffb74d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 14a18 18 0 0 1 18 18" fill="none" stroke="#ffb74d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><circle cx="6" cy="30" r="3" fill="none" stroke="#ffb74d" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <text x="690.7" y="88" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="15" font-weight="700" letter-spacing="1.5" fill="#ffb74d">STOCK NEWS</text>
+    <text x="690.7" y="110" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9fb8a6">Yahoo Finance RSS</text>
+    <text x="690.7" y="128" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9fb8a6">converted to JSON</text>
+    <rect class="bar" x="688.7" y="140" width="285.3" height="3" rx="1.5" fill="#ffb74d" style="animation-delay:-0.8s"/>
+  </g>
+  <g class="card" style="animation-delay:-1.35s">
+    <rect x="10.0" y="164" width="317.3" height="140" rx="10" fill="#0d1611" stroke="#4db6ac" stroke-opacity="0.55"/>
+    <rect x="10.0" y="164" width="317.3" height="140" rx="10" fill="url(#n3)"/>
+    <g transform="translate(28.0,180)"><rect x="0" y="8" width="36" height="24" rx="4" fill="none" stroke="#4db6ac" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M12 8V3h12v5M0 18h36" fill="none" stroke="#4db6ac" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <text x="28.0" y="242" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="15" font-weight="700" letter-spacing="1.5" fill="#4db6ac">PORTFOLIO</text>
+    <text x="28.0" y="264" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9fb8a6">Add, update shares,</text>
+    <text x="28.0" y="282" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9fb8a6">delete, check holdings</text>
+    <rect class="bar" x="26.0" y="294" width="285.3" height="3" rx="1.5" fill="#4db6ac" style="animation-delay:-1.2s"/>
+  </g>
+  <g class="card" style="animation-delay:-1.80s">
+    <rect x="341.3" y="164" width="317.3" height="140" rx="10" fill="#0d1611" stroke="#64b5f6" stroke-opacity="0.55"/>
+    <rect x="341.3" y="164" width="317.3" height="140" rx="10" fill="url(#n4)"/>
+    <g transform="translate(359.3,180)"><circle cx="18" cy="9" r="8" fill="none" stroke="#64b5f6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 34c2-10 30-10 32 0" fill="none" stroke="#64b5f6" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <text x="359.3" y="242" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="15" font-weight="700" letter-spacing="1.5" fill="#64b5f6">USERS</text>
+    <text x="359.3" y="264" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9fb8a6">List, look up and</text>
+    <text x="359.3" y="282" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9fb8a6">create users</text>
+    <rect class="bar" x="357.3" y="294" width="285.3" height="3" rx="1.5" fill="#64b5f6" style="animation-delay:-1.6s"/>
+  </g>
+  <g class="card" style="animation-delay:-2.25s">
+    <rect x="672.7" y="164" width="317.3" height="140" rx="10" fill="#0d1611" stroke="#47a248" stroke-opacity="0.55"/>
+    <rect x="672.7" y="164" width="317.3" height="140" rx="10" fill="url(#n5)"/>
+    <g transform="translate(690.7,180)"><circle cx="18" cy="17" r="15" fill="none" stroke="#47a248" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M18 8v9l6 4" fill="none" stroke="#47a248" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></g>
+    <text x="690.7" y="242" font-family="Consolas, Menlo, 'DejaVu Sans Mono', monospace" font-size="15" font-weight="700" letter-spacing="1.5" fill="#47a248">NIGHTLY JOB</text>
+    <text x="690.7" y="264" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9fb8a6">Reprices every holding,</text>
+    <text x="690.7" y="282" font-family="Inter, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13" fill="#9fb8a6">snapshots total value</text>
+    <rect class="bar" x="688.7" y="294" width="285.3" height="3" rx="1.5" fill="#47a248" style="animation-delay:-2.0s"/>
+  </g>
+</svg>
